@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>FlowTrip - AI 추천 결과</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+            background: #f3f7fb;
+            color: #0f172a;
+        }
+
+        .page {
+            width: 100%;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            gap: 24px;
+        }
+
+        .left {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+        }
+
+        .label {
+            font-size: 13px;
+            color: #64748b;
+            margin-top: 16px;
+        }
+
+        .value {
+            margin-top: 6px;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        .tab-button {
+            border: none;
+            padding: 10px 15px;
+            border-radius: 12px;
+            background: #eef5ff;
+            color: #1e3a8a;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .tab-button.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .place-list {
+            max-height: 430px;
+            overflow-y: auto;
+        }
+
+        .place-card {
+            border: 1px solid #e5edf5;
+            background: #f8fbff;
+            border-radius: 16px;
+            padding: 14px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .place-card:hover {
+            background: #eff6ff;
+            border-color: #93c5fd;
+        }
+
+        .place-card.selected {
+            border-color: #2563eb;
+            background: #eaf2ff;
+        }
+
+        .place-card strong {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 6px;
+        }
+
+        .place-card p {
+            margin: 4px 0;
+            color: #64748b;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .place-card a {
+            display: inline-block;
+            margin-top: 8px;
+            color: #2563eb;
+            font-weight: 700;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .map-card {
+            background: white;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            height: 720px;
+        }
+
+        #map {
+            width: 100%;
+            height: 720px;
+        }
+
+        .debug-card {
+            margin-top: 24px;
+            background: white;
+            border-radius: 22px;
+            padding: 22px;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        }
+
+        pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 14px;
+            padding: 18px;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+
+        @media (max-width: 1100px) {
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .map-card,
+            #map {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+<div class="page">
+
+    <div class="layout">
+
+        <div class="left">
+
+            <div class="card target-place"
+                 th:if="${recommendationResult != null}"
+                 th:attr="data-title=${targetPlaces != null and !targetPlaces.isEmpty() ? targetPlaces[0].title : recommendationResult.recommendedPlaceName},
+                          data-address=${targetPlaces != null and !targetPlaces.isEmpty() ? (targetPlaces[0].roadAddress != null && targetPlaces[0].roadAddress != '' ? targetPlaces[0].roadAddress : targetPlaces[0].address) : recommendationResult.recommendedPlaceName}">
+
+                <h2 th:text="${recommendationResult.recommendedPlaceName}">추천 장소</h2>
+
+                <div class="label">추천 테마</div>
+                <div class="value" th:text="${recommendationResult.selectedThemeName}"></div>
+
+                <div class="label">추천 이유</div>
+                <div class="value" th:text="${recommendationResult.reason}"></div>
+
+                <div class="label">주의사항</div>
+                <div class="value" th:text="${recommendationResult.caution}"></div>
+
+                <div class="label">대체 장소</div>
+                <div class="value" th:text="${recommendationResult.alternativePlaceName}"></div>
+
+                <div class="label">네이버 검색 기준어</div>
+                <div class="value" th:text="${naverSearchBaseQuery}"></div>
+            </div>
+
+            <div class="card">
+                <h3>주변 정보</h3>
+
+                <div class="tabs">
+                    <button type="button" class="tab-button active" onclick="showTab('restaurants', this)">식당</button>
+                    <button type="button" class="tab-button" onclick="showTab('cafes', this)">카페</button>
+                    <button type="button" class="tab-button" onclick="showTab('hotels', this)">숙소</button>
+                </div>
+
+                <div id="restaurants" class="place-list">
+                    <div class="place-card"
+                         th:each="place : ${restaurants}"
+                         th:attr="data-title=${place.title},
+                                  data-address=${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
+                        <strong th:text="${place.title}"></strong>
+                        <p th:text="${place.category}"></p>
+                        <p th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}"></p>
+                        <a th:if="${place.link != null and place.link != ''}"
+                           th:href="${place.link}"
+                           target="_blank"
+                           onclick="event.stopPropagation();">상세 보기</a>
+                    </div>
+
+                    <p th:if="${restaurants == null or restaurants.isEmpty()}">검색된 식당 정보가 없습니다.</p>
+                </div>
+
+                <div id="cafes" class="place-list hidden">
+                    <div class="place-card"
+                         th:each="place : ${cafes}"
+                         th:attr="data-title=${place.title},
+                                  data-address=${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
+                        <strong th:text="${place.title}"></strong>
+                        <p th:text="${place.category}"></p>
+                        <p th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}"></p>
+                        <a th:if="${place.link != null and place.link != ''}"
+                           th:href="${place.link}"
+                           target="_blank"
+                           onclick="event.stopPropagation();">상세 보기</a>
+                    </div>
+
+                    <p th:if="${cafes == null or cafes.isEmpty()}">검색된 카페 정보가 없습니다.</p>
+                </div>
+
+                <div id="hotels" class="place-list hidden">
+                    <div class="place-card"
+                         th:each="place : ${hotels}"
+                         th:attr="data-title=${place.title},
+                                  data-address=${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
+                        <strong th:text="${place.title}"></strong>
+                        <p th:text="${place.category}"></p>
+                        <p th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}"></p>
+                        <a th:if="${place.link != null and place.link != ''}"
+                           th:href="${place.link}"
+                           target="_blank"
+                           onclick="event.stopPropagation();">상세 보기</a>
+                    </div>
+
+                    <p th:if="${hotels == null or hotels.isEmpty()}">검색된 숙소 정보가 없습니다.</p>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="map-card">
+            <div id="map"></div>
+        </div>
+
+    </div>
+
+    <div class="debug-card">
+        <h3>AI 원본 응답</h3>
+        <pre th:text="${gptResult}"></pre>
+    </div>
+
+</div>
+
+<script th:src="@{'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + ${naverMapClientId} + '&submodules=geocoder'}"></script>
+
+<script>
+    let map;
+    let mainMarker = null;
+    let selectedMarker = null;
+    let mainInfoWindow = null;
+    let selectedInfoWindow = null;
+
+    window.onload = function () {
+        map = new naver.maps.Map('map', {
+            center: new naver.maps.LatLng(37.5665, 126.9780),
+            zoom: 13
+        });
+
+        setTimeout(function () {
+            naver.maps.Event.trigger(map, 'resize');
+            addMainPlaceMarker();
+            bindPlaceCardClickEvents('restaurants');
+        }, 300);
+    };
+
+    function geocodeAddress(title, address, callback) {
+        if (!address) {
+            console.log("주소 없음:", title);
+            return;
+        }
+
+        naver.maps.Service.geocode({
+            query: address
+        }, function (status, response) {
+            if (status !== naver.maps.Service.Status.OK) {
+                console.log("Geocode 실패:", title, address, status);
+                return;
+            }
+
+            if (!response.v2 || !response.v2.addresses || response.v2.addresses.length === 0) {
+                console.log("Geocode 결과 없음:", title, address);
+                return;
+            }
+
+            const item = response.v2.addresses[0];
+
+            const latlng = new naver.maps.LatLng(
+                Number(item.y),
+                Number(item.x)
+            );
+
+            callback(latlng);
+        });
+    }
+
+    function createMarker(title, latlng, isMain) {
+        const marker = new naver.maps.Marker({
+            position: latlng,
+            map: map,
+            title: title
+        });
+
+        const infoWindow = new naver.maps.InfoWindow({
+            content:
+                '<div style="padding:10px;font-size:14px;font-weight:700;white-space:nowrap;">'
+                + title +
+                '</div>'
+        });
+
+        naver.maps.Event.addListener(marker, 'click', function () {
+            infoWindow.open(map, marker);
+        });
+
+        if (isMain) {
+            mainMarker = marker;
+            mainInfoWindow = infoWindow;
+        } else {
+            if (selectedMarker) {
+                selectedMarker.setMap(null);
+            }
+
+            if (selectedInfoWindow) {
+                selectedInfoWindow.close();
+            }
+
+            selectedMarker = marker;
+            selectedInfoWindow = infoWindow;
+        }
+
+        return { marker, infoWindow };
+    }
+
+    function addMainPlaceMarker() {
+        const targetCard = document.querySelector('.target-place');
+
+        if (!targetCard) {
+            console.log("추천 장소 카드 없음");
+            return;
+        }
+
+        const title = targetCard.getAttribute('data-title');
+        const address = targetCard.getAttribute('data-address');
+
+        console.log("추천 장소 마커 생성:", title, address);
+
+        geocodeAddress(title, address, function (latlng) {
+            const result = createMarker(title, latlng, true);
+            map.setCenter(latlng);
+            map.setZoom(15);
+            result.infoWindow.open(map, result.marker);
+        });
+    }
+
+    function showSelectedPlaceMarker(title, address, card) {
+        console.log("선택 업체 마커 생성:", title, address);
+
+        geocodeAddress(title, address, function (latlng) {
+            const result = createMarker(title, latlng, false);
+            map.setCenter(latlng);
+            map.setZoom(16);
+            result.infoWindow.open(map, result.marker);
+
+            document.querySelectorAll('.place-card')
+                .forEach(el => el.classList.remove('selected'));
+
+            if (card) {
+                card.classList.add('selected');
+            }
+        });
+    }
+
+    function bindPlaceCardClickEvents(listId) {
+        const cards = document.querySelectorAll('#' + listId + ' .place-card');
+
+        cards.forEach(card => {
+            card.onclick = function () {
+                const title = card.getAttribute('data-title');
+                const address = card.getAttribute('data-address');
+
+                showSelectedPlaceMarker(title, address, card);
+            };
+        });
+    }
+
+    function showTab(tabId, button) {
+        document.querySelectorAll('.place-list')
+            .forEach(el => el.classList.add('hidden'));
+
+        document.getElementById(tabId)
+            .classList.remove('hidden');
+
+        document.querySelectorAll('.tab-button')
+            .forEach(btn => btn.classList.remove('active'));
+
+        if (button) {
+            button.classList.add('active');
+        }
+
+        document.querySelectorAll('.place-card')
+            .forEach(el => el.classList.remove('selected'));
+
+        if (selectedMarker) {
+            selectedMarker.setMap(null);
+            selectedMarker = null;
+        }
+
+        if (selectedInfoWindow) {
+            selectedInfoWindow.close();
+            selectedInfoWindow = null;
+        }
+
+        bindPlaceCardClickEvents(tabId);
+
+        if (mainMarker) {
+            map.setCenter(mainMarker.getPosition());
+            map.setZoom(15);
+        }
+    }
+</script>
+
+</body>
+</html>
