@@ -28,8 +28,19 @@ public class NaverLocalSearchService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    public String buildSearchBaseQuery(String regionName, String placeName) {
+        String safeRegionName = nullSafe(regionName).trim();
+        String safePlaceName = nullSafe(placeName).trim();
+
+        if (safeRegionName.isBlank()) {
+            return safePlaceName;
+        }
+
+        return "강원특별자치도 " + safeRegionName + " " + safePlaceName;
+    }
+
     public List<NearbyPlaceDto> searchTargetPlace(String baseQuery) {
-        return searchLocal(baseQuery, 1);
+        return searchLocal(baseQuery, 5);
     }
 
     public List<NearbyPlaceDto> searchRestaurantsNear(String baseQuery) {
@@ -53,6 +64,11 @@ public class NaverLocalSearchService {
                 + "&start=1"
                 + "&sort=sim";
 
+        System.out.println("===== NAVER LOCAL SEARCH QUERY =====");
+        System.out.println(query);
+        System.out.println("===== NAVER LOCAL SEARCH URL =====");
+        System.out.println(url);
+
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Naver-Client-Id", clientId);
         headers.set("X-Naver-Client-Secret", clientSecret);
@@ -66,26 +82,34 @@ public class NaverLocalSearchService {
                 Map.class
         );
 
-        List<Map<String, Object>> items =
-                (List<Map<String, Object>>) response.getBody().get("items");
+        Map responseBody = response.getBody();
 
         List<NearbyPlaceDto> result = new ArrayList<>();
 
-        if (items == null) {
+        if (responseBody == null) {
+            System.out.println("네이버 지역 검색 응답이 비어 있습니다.");
+            return result;
+        }
+
+        List<Map<String, Object>> items =
+                (List<Map<String, Object>>) responseBody.get("items");
+
+        if (items == null || items.isEmpty()) {
+            System.out.println("네이버 지역 검색 결과 없음: " + query);
             return result;
         }
 
         for (Map<String, Object> item : items) {
-            String title = cleanHtml((String) item.get("title"));
-            String category = (String) item.get("category");
-            String address = (String) item.get("address");
-            String roadAddress = (String) item.get("roadAddress");
-            String telephone = (String) item.get("telephone");
-            String link = (String) item.get("link");
-            String mapx = String.valueOf(item.get("mapx"));
-            String mapy = String.valueOf(item.get("mapy"));
+            String title = cleanHtml(asString(item.get("title")));
+            String category = asString(item.get("category"));
+            String address = asString(item.get("address"));
+            String roadAddress = asString(item.get("roadAddress"));
+            String telephone = asString(item.get("telephone"));
+            String link = asString(item.get("link"));
+            String mapx = asString(item.get("mapx"));
+            String mapy = asString(item.get("mapy"));
 
-            result.add(new NearbyPlaceDto(
+            NearbyPlaceDto dto = new NearbyPlaceDto(
                     title,
                     category,
                     address,
@@ -94,14 +118,39 @@ public class NaverLocalSearchService {
                     link,
                     mapx,
                     mapy
-            ));
+            );
+
+            result.add(dto);
+
+            System.out.println("----- NAVER RESULT ITEM -----");
+            System.out.println("title = " + title);
+            System.out.println("category = " + category);
+            System.out.println("address = " + address);
+            System.out.println("roadAddress = " + roadAddress);
+            System.out.println("mapx = " + mapx);
+            System.out.println("mapy = " + mapy);
         }
 
         return result;
     }
 
     private String cleanHtml(String value) {
-        if (value == null) return "";
+        if (value == null) {
+            return "";
+        }
+
         return value.replaceAll("<[^>]*>", "");
+    }
+
+    private String asString(Object value) {
+        if (value == null) {
+            return "";
+        }
+
+        return String.valueOf(value);
+    }
+
+    private String nullSafe(String value) {
+        return value == null ? "" : value;
     }
 }

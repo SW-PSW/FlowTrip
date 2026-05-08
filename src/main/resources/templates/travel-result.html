@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <title>FlowTrip - AI 추천 결과</title>
@@ -25,7 +26,7 @@
 
         .layout {
             display: grid;
-            grid-template-columns: 420px 1fr;
+            grid-template-columns: 440px 1fr;
             gap: 24px;
         }
 
@@ -42,7 +43,9 @@
             box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
         }
 
-        h1, h2, h3 {
+        h1,
+        h2,
+        h3 {
             margin-top: 0;
         }
 
@@ -56,31 +59,11 @@
             margin-top: 6px;
             line-height: 1.6;
             font-weight: 600;
-        }
-
-        .tabs {
-            display: flex;
-            gap: 8px;
-            margin: 16px 0;
-        }
-
-        .tab-button {
-            border: none;
-            padding: 10px 15px;
-            border-radius: 12px;
-            background: #eef5ff;
-            color: #1e3a8a;
-            font-weight: 800;
-            cursor: pointer;
-        }
-
-        .tab-button.active {
-            background: #2563eb;
-            color: white;
+            word-break: break-word;
         }
 
         .place-list {
-            max-height: 430px;
+            max-height: 560px;
             overflow-y: auto;
         }
 
@@ -117,17 +100,52 @@
             line-height: 1.45;
         }
 
-        .place-card a {
-            display: inline-block;
-            margin-top: 8px;
-            color: #2563eb;
-            font-weight: 700;
-            text-decoration: none;
-            font-size: 14px;
+        .review-box {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #dbeafe;
         }
 
-        .hidden {
-            display: none;
+        .review-title {
+            font-size: 13px;
+            font-weight: 800;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+        .review-item {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5edf5;
+        }
+
+        .review-item a {
+            display: block;
+            color: #2563eb;
+            font-size: 14px;
+            font-weight: 800;
+            text-decoration: none;
+            line-height: 1.4;
+            margin-bottom: 6px;
+        }
+
+        .review-item a:hover {
+            text-decoration: underline;
+        }
+
+        .review-desc {
+            color: #475569;
+            font-size: 13px;
+            line-height: 1.45;
+            margin: 4px 0;
+        }
+
+        .review-meta {
+            color: #94a3b8;
+            font-size: 12px;
+            margin-top: 6px;
         }
 
         .map-card {
@@ -136,6 +154,8 @@
             overflow: hidden;
             box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
             height: 720px;
+            position: sticky;
+            top: 24px;
         }
 
         #map {
@@ -171,101 +191,134 @@
             #map {
                 height: 500px;
             }
+
+            .map-card {
+                position: static;
+            }
         }
     </style>
 </head>
 
 <body>
+
 <div class="page">
 
     <div class="layout">
 
         <div class="left">
 
-            <div class="card target-place"
-                 th:if="${recommendationResult != null}"
-                 th:attr="data-title=${targetPlaces != null and !targetPlaces.isEmpty() ? targetPlaces[0].title : recommendationResult.recommendedPlaceName},
-                          data-address=${targetPlaces != null and !targetPlaces.isEmpty() ? (targetPlaces[0].roadAddress != null && targetPlaces[0].roadAddress != '' ? targetPlaces[0].roadAddress : targetPlaces[0].address) : recommendationResult.recommendedPlaceName}">
+            <div class="card"
+                 th:if="${recommendationResult != null}">
 
-                <h2 th:text="${recommendationResult.recommendedPlaceName}">추천 장소</h2>
+                <h2 th:text="${recommendationResult.recommendedPlaceName}">
+                    추천 장소
+                </h2>
 
                 <div class="label">추천 테마</div>
-                <div class="value" th:text="${recommendationResult.selectedThemeName}"></div>
+                <div class="value"
+                     th:text="${recommendationResult.selectedThemeName}">
+                </div>
 
                 <div class="label">추천 이유</div>
-                <div class="value" th:text="${recommendationResult.reason}"></div>
+                <div class="value"
+                     th:text="${recommendationResult.reason}">
+                </div>
 
                 <div class="label">주의사항</div>
-                <div class="value" th:text="${recommendationResult.caution}"></div>
-
-                <div class="label">대체 장소</div>
-                <div class="value" th:text="${recommendationResult.alternativePlaceName}"></div>
+                <div class="value"
+                     th:text="${recommendationResult.caution}">
+                </div>
 
                 <div class="label">네이버 검색 기준어</div>
-                <div class="value" th:text="${naverSearchBaseQuery}"></div>
+                <div class="value"
+                     th:text="${naverSearchBaseQuery}">
+                </div>
+
+            </div>
+
+            <div class="card"
+                 id="targetPlaceData"
+                 th:if="${targetPlaces != null and !targetPlaces.isEmpty()}"
+                 th:attr="
+                 data-title=${targetPlaces[0].title},
+                 data-mapx=${targetPlaces[0].mapx},
+                 data-mapy=${targetPlaces[0].mapy}
+                 ">
+
+                <h3>네이버 검색 결과</h3>
+
+                <div class="label">장소명</div>
+                <div class="value"
+                     th:text="${targetPlaces[0].title}">
+                </div>
+
+                <div class="label">주소</div>
+                <div class="value"
+                     th:text="${targetPlaces[0].roadAddress != null && targetPlaces[0].roadAddress != '' ? targetPlaces[0].roadAddress : targetPlaces[0].address}">
+                </div>
+
             </div>
 
             <div class="card">
-                <h3>주변 정보</h3>
 
-                <div class="tabs">
-                    <button type="button" class="tab-button active" onclick="showTab('restaurants', this)">식당</button>
-                    <button type="button" class="tab-button" onclick="showTab('cafes', this)">카페</button>
-                    <button type="button" class="tab-button" onclick="showTab('hotels', this)">숙소</button>
-                </div>
+                <h3>주변 식당 및 관련 후기</h3>
 
-                <div id="restaurants" class="place-list">
+                <div class="place-list">
+
                     <div class="place-card"
-                         th:each="place : ${restaurants}"
-                         th:attr="data-title=${place.title},
-                                  data-address=${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
-                        <strong th:text="${place.title}"></strong>
-                        <p th:text="${place.category}"></p>
-                        <p th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}"></p>
-                        <a th:if="${place.link != null and place.link != ''}"
-                           th:href="${place.link}"
-                           target="_blank"
-                           onclick="event.stopPropagation();">상세 보기</a>
+                         th:each="item : ${restaurantReviews}"
+                         th:attr="
+                         data-title=${item.place.title},
+                         data-mapx=${item.place.mapx},
+                         data-mapy=${item.place.mapy}
+                         ">
+
+                        <strong th:text="${item.place.title}"></strong>
+
+                        <p th:text="${item.place.category}"></p>
+
+                        <p th:text="${item.place.roadAddress != null && item.place.roadAddress != '' ? item.place.roadAddress : item.place.address}">
+                        </p>
+
+                        <div class="review-box">
+
+                            <div class="review-title">관련 블로그 후기</div>
+
+                            <div th:if="${item.reviews == null or item.reviews.isEmpty()}">
+                                <p class="review-desc">관련 후기를 찾지 못했습니다.</p>
+                            </div>
+
+                            <div class="review-item"
+                                 th:each="review : ${item.reviews}">
+
+                                <a th:href="${review.link}"
+                                   target="_blank"
+                                   onclick="event.stopPropagation();"
+                                   th:text="${review.title}">
+                                </a>
+
+                                <p class="review-desc"
+                                   th:text="${review.description}">
+                                </p>
+
+                                <p class="review-meta"
+                                   th:text="${review.bloggerName + ' · ' + review.postDate}">
+                                </p>
+
+                            </div>
+
+                        </div>
+
                     </div>
 
-                    <p th:if="${restaurants == null or restaurants.isEmpty()}">검색된 식당 정보가 없습니다.</p>
-                </div>
+                    <p th:if="${restaurantReviews == null or restaurantReviews.isEmpty()}">
+                        검색된 식당 정보가 없습니다.
+                    </p>
 
-                <div id="cafes" class="place-list hidden">
-                    <div class="place-card"
-                         th:each="place : ${cafes}"
-                         th:attr="data-title=${place.title},
-                                  data-address=${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
-                        <strong th:text="${place.title}"></strong>
-                        <p th:text="${place.category}"></p>
-                        <p th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}"></p>
-                        <a th:if="${place.link != null and place.link != ''}"
-                           th:href="${place.link}"
-                           target="_blank"
-                           onclick="event.stopPropagation();">상세 보기</a>
-                    </div>
-
-                    <p th:if="${cafes == null or cafes.isEmpty()}">검색된 카페 정보가 없습니다.</p>
-                </div>
-
-                <div id="hotels" class="place-list hidden">
-                    <div class="place-card"
-                         th:each="place : ${hotels}"
-                         th:attr="data-title=${place.title},
-                                  data-address=${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
-                        <strong th:text="${place.title}"></strong>
-                        <p th:text="${place.category}"></p>
-                        <p th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}"></p>
-                        <a th:if="${place.link != null and place.link != ''}"
-                           th:href="${place.link}"
-                           target="_blank"
-                           onclick="event.stopPropagation();">상세 보기</a>
-                    </div>
-
-                    <p th:if="${hotels == null or hotels.isEmpty()}">검색된 숙소 정보가 없습니다.</p>
                 </div>
 
             </div>
+
         </div>
 
         <div class="map-card">
@@ -275,187 +328,194 @@
     </div>
 
     <div class="debug-card">
+
         <h3>AI 원본 응답</h3>
+
         <pre th:text="${gptResult}"></pre>
+
     </div>
 
 </div>
 
-<script th:src="@{'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + ${naverMapClientId} + '&submodules=geocoder'}"></script>
+<script th:src="@{'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + ${naverMapClientId}}"></script>
 
 <script>
+
     let map;
+
     let mainMarker = null;
     let selectedMarker = null;
+
     let mainInfoWindow = null;
     let selectedInfoWindow = null;
 
     window.onload = function () {
-        map = new naver.maps.Map('map', {
-            center: new naver.maps.LatLng(37.5665, 126.9780),
-            zoom: 13
-        });
 
-        setTimeout(function () {
-            naver.maps.Event.trigger(map, 'resize');
-            addMainPlaceMarker();
-            bindPlaceCardClickEvents('restaurants');
-        }, 300);
-    };
+        const target = document.getElementById('targetPlaceData');
 
-    function geocodeAddress(title, address, callback) {
-        if (!address) {
-            console.log("주소 없음:", title);
+        if (!target) {
+            console.log("targetPlaceData 없음");
             return;
         }
 
-        naver.maps.Service.geocode({
-            query: address
-        }, function (status, response) {
-            if (status !== naver.maps.Service.Status.OK) {
-                console.log("Geocode 실패:", title, address, status);
-                return;
-            }
+        const title = target.getAttribute('data-title');
+        const mapx = target.getAttribute('data-mapx');
+        const mapy = target.getAttribute('data-mapy');
 
-            if (!response.v2 || !response.v2.addresses || response.v2.addresses.length === 0) {
-                console.log("Geocode 결과 없음:", title, address);
-                return;
-            }
+        console.log("추천 장소 title:", title);
+        console.log("추천 장소 mapx:", mapx);
+        console.log("추천 장소 mapy:", mapy);
 
-            const item = response.v2.addresses[0];
+        const lng = Number(mapx) / 10000000;
+        const lat = Number(mapy) / 10000000;
 
-            const latlng = new naver.maps.LatLng(
-                Number(item.y),
-                Number(item.x)
-            );
+        console.log("변환 lng:", lng);
+        console.log("변환 lat:", lat);
 
-            callback(latlng);
+        const position = new naver.maps.LatLng(lat, lng);
+
+        map = new naver.maps.Map('map', {
+            center: position,
+            zoom: 16
         });
-    }
 
-    function createMarker(title, latlng, isMain) {
-        const marker = new naver.maps.Marker({
-            position: latlng,
+        drawMainPlaceMarker(title, position);
+
+        bindRestaurantClickEvents();
+        bindMainPlaceClickEvent();
+    };
+
+    function drawMainPlaceMarker(title, position) {
+
+        if (mainMarker) {
+            mainMarker.setMap(null);
+        }
+
+        mainMarker = new naver.maps.Marker({
+            position: position,
             map: map,
             title: title
         });
 
-        const infoWindow = new naver.maps.InfoWindow({
+        mainInfoWindow = new naver.maps.InfoWindow({
             content:
                 '<div style="padding:10px;font-size:14px;font-weight:700;white-space:nowrap;">'
                 + title +
                 '</div>'
         });
 
-        naver.maps.Event.addListener(marker, 'click', function () {
-            infoWindow.open(map, marker);
-        });
+        mainInfoWindow.open(map, mainMarker);
 
-        if (isMain) {
-            mainMarker = marker;
-            mainInfoWindow = infoWindow;
-        } else {
-            if (selectedMarker) {
-                selectedMarker.setMap(null);
-            }
+        map.setCenter(position);
+        map.setZoom(16);
 
-            if (selectedInfoWindow) {
-                selectedInfoWindow.close();
-            }
-
-            selectedMarker = marker;
-            selectedInfoWindow = infoWindow;
-        }
-
-        return { marker, infoWindow };
+        console.log("추천 장소 마커 생성 완료");
     }
 
-    function addMainPlaceMarker() {
-        const targetCard = document.querySelector('.target-place');
+    function drawSelectedPlaceMarker(title, mapx, mapy) {
 
-        if (!targetCard) {
-            console.log("추천 장소 카드 없음");
-            return;
-        }
+        const lng = Number(mapx) / 10000000;
+        const lat = Number(mapy) / 10000000;
 
-        const title = targetCard.getAttribute('data-title');
-        const address = targetCard.getAttribute('data-address');
+        console.log("업체 좌표 변환:", title, lat, lng);
 
-        console.log("추천 장소 마커 생성:", title, address);
-
-        geocodeAddress(title, address, function (latlng) {
-            const result = createMarker(title, latlng, true);
-            map.setCenter(latlng);
-            map.setZoom(15);
-            result.infoWindow.open(map, result.marker);
-        });
-    }
-
-    function showSelectedPlaceMarker(title, address, card) {
-        console.log("선택 업체 마커 생성:", title, address);
-
-        geocodeAddress(title, address, function (latlng) {
-            const result = createMarker(title, latlng, false);
-            map.setCenter(latlng);
-            map.setZoom(16);
-            result.infoWindow.open(map, result.marker);
-
-            document.querySelectorAll('.place-card')
-                .forEach(el => el.classList.remove('selected'));
-
-            if (card) {
-                card.classList.add('selected');
-            }
-        });
-    }
-
-    function bindPlaceCardClickEvents(listId) {
-        const cards = document.querySelectorAll('#' + listId + ' .place-card');
-
-        cards.forEach(card => {
-            card.onclick = function () {
-                const title = card.getAttribute('data-title');
-                const address = card.getAttribute('data-address');
-
-                showSelectedPlaceMarker(title, address, card);
-            };
-        });
-    }
-
-    function showTab(tabId, button) {
-        document.querySelectorAll('.place-list')
-            .forEach(el => el.classList.add('hidden'));
-
-        document.getElementById(tabId)
-            .classList.remove('hidden');
-
-        document.querySelectorAll('.tab-button')
-            .forEach(btn => btn.classList.remove('active'));
-
-        if (button) {
-            button.classList.add('active');
-        }
-
-        document.querySelectorAll('.place-card')
-            .forEach(el => el.classList.remove('selected'));
+        const position = new naver.maps.LatLng(lat, lng);
 
         if (selectedMarker) {
             selectedMarker.setMap(null);
-            selectedMarker = null;
         }
 
         if (selectedInfoWindow) {
             selectedInfoWindow.close();
-            selectedInfoWindow = null;
         }
 
-        bindPlaceCardClickEvents(tabId);
+        selectedMarker = new naver.maps.Marker({
+            position: position,
+            map: map,
+            title: title
+        });
 
-        if (mainMarker) {
-            map.setCenter(mainMarker.getPosition());
-            map.setZoom(15);
-        }
+        selectedInfoWindow = new naver.maps.InfoWindow({
+            content:
+                '<div style="padding:10px;font-size:14px;font-weight:700;white-space:nowrap;">'
+                + title +
+                '</div>'
+        });
+
+        selectedInfoWindow.open(map, selectedMarker);
+
+        map.setCenter(position);
+        map.setZoom(17);
+
+        console.log("주변 업체 마커 생성 완료:", title);
     }
+
+    function bindRestaurantClickEvents() {
+
+        const cards = document.querySelectorAll('.place-card');
+
+        console.log("place-card 개수:", cards.length);
+
+        cards.forEach(card => {
+
+            card.addEventListener('click', function () {
+
+                const title = card.getAttribute('data-title');
+                const mapx = card.getAttribute('data-mapx');
+                const mapy = card.getAttribute('data-mapy');
+
+                console.log("클릭한 업체:", title);
+                console.log("업체 mapx:", mapx);
+                console.log("업체 mapy:", mapy);
+
+                if (!mapx || !mapy) {
+                    console.log("업체 좌표 없음");
+                    return;
+                }
+
+                drawSelectedPlaceMarker(title, mapx, mapy);
+
+                document.querySelectorAll('.place-card')
+                    .forEach(el => el.classList.remove('selected'));
+
+                card.classList.add('selected');
+            });
+        });
+    }
+
+    function bindMainPlaceClickEvent() {
+
+        const target = document.getElementById('targetPlaceData');
+
+        if (!target) {
+            console.log("targetPlaceData 없음");
+            return;
+        }
+
+        target.style.cursor = "pointer";
+
+        target.addEventListener('click', function () {
+
+            const title = target.getAttribute('data-title');
+            const mapx = target.getAttribute('data-mapx');
+            const mapy = target.getAttribute('data-mapy');
+
+            const lng = Number(mapx) / 10000000;
+            const lat = Number(mapy) / 10000000;
+
+            const position = new naver.maps.LatLng(lat, lng);
+
+            map.setCenter(position);
+            map.setZoom(16);
+
+            if (mainInfoWindow && mainMarker) {
+                mainInfoWindow.open(map, mainMarker);
+            }
+
+            console.log("추천 장소로 복귀");
+        });
+    }
+
 </script>
 
 </body>
