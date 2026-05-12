@@ -20,6 +20,7 @@ import capstone.hallym.xx.flowtrip.dto.TravelRequestDto;
 import capstone.hallym.xx.flowtrip.entity.Place;
 import capstone.hallym.xx.flowtrip.repository.PlaceRepository;
 import capstone.hallym.xx.flowtrip.service.NaverBlogSearchService;
+import capstone.hallym.xx.flowtrip.service.NaverImageSearchService;
 import capstone.hallym.xx.flowtrip.service.NaverLocalSearchService;
 import capstone.hallym.xx.flowtrip.service.OpenAiService;
 import capstone.hallym.xx.flowtrip.service.RecommendationCandidateService;
@@ -34,6 +35,7 @@ public class TravelController {
     private final OpenAiService openAiService;
     private final NaverLocalSearchService naverLocalSearchService;
     private final NaverBlogSearchService naverBlogSearchService;
+    private final NaverImageSearchService naverImageSearchService;
     private final PlaceRepository placeRepository;
     private final ObjectMapper objectMapper;
 
@@ -45,6 +47,7 @@ public class TravelController {
                             OpenAiService openAiService,
                             NaverLocalSearchService naverLocalSearchService,
                             NaverBlogSearchService naverBlogSearchService,
+                            NaverImageSearchService naverImageSearchService,
                             PlaceRepository placeRepository) {
 
         this.themeService = themeService;
@@ -52,16 +55,15 @@ public class TravelController {
         this.openAiService = openAiService;
         this.naverLocalSearchService = naverLocalSearchService;
         this.naverBlogSearchService = naverBlogSearchService;
+        this.naverImageSearchService = naverImageSearchService;
         this.placeRepository = placeRepository;
         this.objectMapper = new ObjectMapper();
     }
 
     @GetMapping("/")
     public String showForm(Model model) {
-
         model.addAttribute("travelRequestDto", new TravelRequestDto());
         model.addAttribute("moodGroups", themeService.getMoodGroups());
-
         return "travel-form";
     }
 
@@ -105,7 +107,6 @@ public class TravelController {
                 && !recommendationResult.getRecommendedPlaceId().isBlank()) {
 
             try {
-
                 Long placeId =
                         Long.parseLong(recommendationResult.getRecommendedPlaceId());
 
@@ -113,7 +114,6 @@ public class TravelController {
                         placeRepository.findById(placeId).orElse(null);
 
                 if (selectedPlace != null) {
-
                     String regionName = "";
                     String placeName = selectedPlace.getPlaceName();
 
@@ -130,7 +130,6 @@ public class TravelController {
                 }
 
             } catch (Exception e) {
-
                 System.out.println("추천 장소 ID 파싱 실패");
                 System.out.println(e.getMessage());
             }
@@ -148,7 +147,6 @@ public class TravelController {
         }
 
         if (!naverSearchBaseQuery.isBlank()) {
-
             System.out.println("네이버 검색 기준어 = "
                     + naverSearchBaseQuery);
 
@@ -185,7 +183,6 @@ public class TravelController {
                     + hotels.size());
 
             if (!targetPlaces.isEmpty()) {
-
                 NearbyPlaceDto target = targetPlaces.get(0);
 
                 System.out.println(
@@ -208,20 +205,16 @@ public class TravelController {
             }
 
             for (NearbyPlaceDto restaurant : restaurants) {
-
-                System.out.println(
-                        "===== 블로그 후기 검색 시작 =====");
-
-                System.out.println("업체명 = "
-                        + restaurant.getTitle());
+                System.out.println("===== 식당 상세 보조 정보 검색 시작 =====");
+                System.out.println("업체명 = " + restaurant.getTitle());
 
                 restaurantReviews.add(
-
                         new NearbyPlaceWithReviewsDto(
-
                                 restaurant,
-
                                 naverBlogSearchService.searchReviews(
+                                        restaurant.getTitle()
+                                ),
+                                naverImageSearchService.searchPlaceImages(
                                         restaurant.getTitle()
                                 )
                         )
@@ -230,13 +223,8 @@ public class TravelController {
         }
 
         model.addAttribute("request", dto);
-
         model.addAttribute("gptResult", gptResult);
-
-        model.addAttribute(
-                "recommendationResult",
-                recommendationResult
-        );
+        model.addAttribute("recommendationResult", recommendationResult);
 
         model.addAttribute(
                 "themeCandidates",
@@ -249,11 +237,8 @@ public class TravelController {
         );
 
         model.addAttribute("targetPlaces", targetPlaces);
-
         model.addAttribute("restaurants", restaurants);
-
         model.addAttribute("cafes", cafes);
-
         model.addAttribute("hotels", hotels);
 
         model.addAttribute(
@@ -275,9 +260,7 @@ public class TravelController {
     }
 
     private RecommendationResultDto parseGptResult(String gptResult) {
-
         try {
-
             String cleanedJson = gptResult
                     .replace("```json", "")
                     .replace("```", "")
@@ -289,7 +272,6 @@ public class TravelController {
             );
 
         } catch (Exception e) {
-
             System.out.println("GPT JSON 파싱 실패");
             System.out.println(e.getMessage());
 
