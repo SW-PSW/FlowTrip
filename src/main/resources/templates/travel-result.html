@@ -216,71 +216,6 @@
             min-width: 0;
         }
 
-        .top-nav {
-            display: flex;
-            justify-content: flex-end;
-            gap: 14px;
-            margin-bottom: 18px;
-        }
-
-        .top-card {
-            width: 156px;
-            height: 156px;
-            border-radius: 26px;
-            border: 1px solid rgba(255, 255, 255, 0.13);
-            background: rgba(18, 22, 23, 0.42);
-            color: var(--text);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            cursor: pointer;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.18);
-            transition: 0.18s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .top-card.active {
-            border-color: rgba(246, 198, 91, 0.95);
-            box-shadow:
-                    inset 0 0 0 1px rgba(246, 198, 91, 0.14),
-                    0 0 34px rgba(246, 198, 91, 0.15);
-        }
-
-        .top-card.disabled {
-            opacity: 0.52;
-            cursor: not-allowed;
-        }
-
-        .top-card:hover:not(.disabled) {
-            transform: translateY(-4px);
-            background: rgba(32, 36, 37, 0.62);
-        }
-
-        .top-icon {
-            font-size: 32px;
-            color: var(--gold);
-        }
-
-        .top-card.active .top-icon {
-            color: #ffffff;
-        }
-
-        .top-title {
-            font-size: 16px;
-            font-weight: 900;
-        }
-
-        .top-sub {
-            font-size: 12px;
-            color: var(--muted);
-            font-weight: 600;
-        }
-
         .main-grid {
             display: grid;
             grid-template-columns: minmax(520px, 1.05fr) minmax(460px, 0.95fr);
@@ -338,7 +273,7 @@
 
         .category-tabs {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
             margin-bottom: 16px;
         }
@@ -461,7 +396,7 @@
 
         .place-card {
             display: grid;
-            grid-template-columns: 170px 1fr 86px;
+            grid-template-columns: 170px 1fr 96px;
             gap: 22px;
             padding: 18px 0;
             border-bottom: 1px solid rgba(255, 255, 255, 0.13);
@@ -476,47 +411,43 @@
             padding-right: 12px;
         }
 
-		.place-thumb {
-		    width: 170px;
-		    height: 140px;
-		    border-radius: 22px;
-		    overflow: hidden;
+        .place-thumb {
+            width: 170px;
+            height: 140px;
+            border-radius: 22px;
+            overflow: hidden;
+            background:
+                    linear-gradient(
+                            135deg,
+                            rgba(255,255,255,0.82),
+                            rgba(255,255,255,0.44)
+                    );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.75);
+            font-size: 42px;
+            flex-shrink: 0;
+        }
 
-		    background:
-		        linear-gradient(
-		            135deg,
-		            rgba(255,255,255,0.82),
-		            rgba(255,255,255,0.44)
-		        );
+        .place-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 22px;
+            display: block;
+        }
 
-		    display: flex;
-		    align-items: center;
-		    justify-content: center;
+        .recommend-thumb {
+            overflow: hidden;
+        }
 
-		    color: rgba(255,255,255,0.75);
-		    font-size: 42px;
-
-		    flex-shrink: 0;
-		}
-
-		.place-thumb img {
-			width: 100%;
-			    height: 100%;
-			    object-fit: cover;
-			    border-radius: 22px;
-			    display: block;
-		}
-
-		.recommend-thumb {
-		    overflow: hidden;
-		}
-
-		.recommend-thumb img {
-		    width: 100%;
-		    height: 100%;
-		    object-fit: cover;
-		    display: block;
-		}
+        .recommend-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
 
         .place-info {
             min-width: 0;
@@ -559,7 +490,7 @@
         }
 
         .mini-btn {
-            width: 84px;
+            width: 94px;
             height: 38px;
             border-radius: 11px;
             border: 1px solid rgba(246, 198, 91, 0.42);
@@ -575,8 +506,17 @@
             color: var(--gold);
         }
 
+        .mini-btn.course {
+            color: #9be7c7;
+            border-color: rgba(155, 231, 199, 0.45);
+        }
+
         .mini-btn:hover {
             background: rgba(246, 198, 91, 0.14);
+        }
+
+        .mini-btn.course:hover {
+            background: rgba(155, 231, 199, 0.12);
         }
 
         .dynamic-detail-area {
@@ -703,12 +643,13 @@
             align-items: center;
             margin-bottom: 18px;
         }
-		.recommend-name,
-		.recommend-address {
-		    overflow: hidden;
-		    text-overflow: ellipsis;
-		    white-space: nowrap;
-		}
+
+        .recommend-name,
+        .recommend-address {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 
         .recommend-thumb {
             width: 126px;
@@ -785,6 +726,135 @@
             word-break: keep-all;
         }
 
+        .congestion-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 76px;
+            height: 34px;
+            padding: 0 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 900;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+        }
+
+        .congestion-badge[data-level="높음"] {
+            color: #ff7d7d;
+            border-color: rgba(255,107,107,.5);
+            background: rgba(255,107,107,.12);
+        }
+
+        .congestion-badge[data-level="보통"] {
+            color: #f6c65b;
+            border-color: rgba(246,198,91,.5);
+            background: rgba(246,198,91,.12);
+        }
+
+        .congestion-badge[data-level="낮음"] {
+            color: #9be7c7;
+            border-color: rgba(155,231,199,.5);
+            background: rgba(155,231,199,.12);
+        }
+
+        .route-list {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .route-list li {
+            margin: 4px 0;
+        }
+
+        .course-card {
+            padding: 24px;
+            min-height: 280px;
+        }
+
+        .course-toolbar {
+            display: flex;
+            gap: 8px;
+        }
+
+        .empty-course {
+            margin: 0;
+            padding: 18px;
+            border-radius: 18px;
+            color: var(--muted);
+            background: rgba(255,255,255,0.05);
+            border: 1px dashed rgba(255,255,255,0.16);
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.6;
+        }
+
+        .course-item {
+            display: grid;
+            grid-template-columns: 34px 1fr auto;
+            gap: 12px;
+            align-items: center;
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 12px;
+        }
+
+        .course-order {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            color: #1e1606;
+            background: linear-gradient(135deg, #f8d982, #dca73c);
+            font-weight: 950;
+            font-size: 13px;
+        }
+
+        .course-item-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: var(--text);
+        }
+
+        .course-item-meta {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .course-delete-btn {
+            width: 34px;
+            height: 34px;
+            border-radius: 11px;
+            border: 1px solid rgba(255,255,255,0.14);
+            background: rgba(255,255,255,0.06);
+            color: var(--muted);
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        .course-delete-btn:hover {
+            color: #ff8f8f;
+            border-color: rgba(255,107,107,.35);
+            background: rgba(255,107,107,.1);
+        }
+
+        .course-summary {
+            margin-top: 14px;
+            padding: 14px;
+            border-radius: 16px;
+            background: rgba(246, 198, 91, 0.1);
+            border: 1px solid rgba(246, 198, 91, 0.18);
+            color: var(--gold);
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.5;
+        }
+
         .hidden {
             display: none !important;
         }
@@ -833,11 +903,6 @@
                 grid-template-columns: 1fr;
             }
 
-            .top-nav {
-                justify-content: flex-start;
-                flex-wrap: wrap;
-            }
-
             .map-card {
                 height: 420px;
             }
@@ -863,19 +928,19 @@
                 padding: 20px;
             }
 
-            .top-card {
-                width: calc(50% - 8px);
-                height: 126px;
-            }
-
             .left-panel {
                 padding: 22px;
+            }
+
+            .category-tabs {
+                grid-template-columns: repeat(2, 1fr);
             }
 
             .custom-search-box,
             .place-card,
             .recommend-main,
-            .info-row {
+            .info-row,
+            .course-item {
                 grid-template-columns: 1fr;
             }
 
@@ -886,418 +951,728 @@
             .place-actions {
                 align-items: flex-start;
             }
+			.congestion-score-box {
+			    display: grid;
+			    grid-template-columns: 86px 1fr;
+			    gap: 14px;
+			    align-items: center;
+			    margin: 18px 0;
+			    padding: 18px;
+			    border-radius: 22px;
+			    background: rgba(255,255,255,0.055);
+			    border: 1px solid rgba(255,255,255,0.1);
+			}
+
+			.score-circle {
+			    width: 76px;
+			    height: 76px;
+			    border-radius: 50%;
+			    display: grid;
+			    place-items: center;
+			    background: rgba(246, 198, 91, 0.12);
+			    border: 1px solid rgba(246, 198, 91, 0.32);
+			    color: var(--gold);
+			    font-size: 22px;
+			    font-weight: 950;
+			}
+
+			.score-text-title {
+			    font-size: 15px;
+			    font-weight: 950;
+			    color: var(--text);
+			    margin-bottom: 6px;
+			}
+
+			.score-text-desc {
+			    font-size: 13px;
+			    color: var(--muted);
+			    line-height: 1.55;
+			    font-weight: 650;
+			}
+
+			.signal-list {
+			    display: grid;
+			    gap: 8px;
+			}
+
+			.signal-item {
+			    padding: 10px 12px;
+			    border-radius: 14px;
+			    background: rgba(255,255,255,0.045);
+			    border: 1px solid rgba(255,255,255,0.08);
+			    color: var(--muted);
+			    font-size: 13px;
+			    line-height: 1.5;
+			    font-weight: 650;
+			}
         }
     </style>
 </head>
 
 <body>
-
-<div class="app">
-
-    <aside class="sidebar">
-        <div class="brand">
-            <div class="brand-icon">✦</div>
-            <div>
-                <div class="brand-title">FlowTrip</div>
-                <div class="brand-sub">AI 여행 추천 서비스</div>
-            </div>
-        </div>
-
-        <nav class="side-menu">
-            <a href="#" class="side-item active">
-                <span class="side-icon">✦</span>
-                <span>여행 추천</span>
-            </a>
-
-            <a href="#" class="side-item locked">
-                <span class="side-icon">♧</span>
-                <span>지도 보기</span>
-                <span class="lock">▣</span>
-            </a>
-
-            <a href="#" class="side-item locked">
-                <span class="side-icon">♨</span>
-                <span>주변 정보</span>
-                <span class="lock">▣</span>
-            </a>
-
-            <a href="#" class="side-item locked">
-                <span class="side-icon">♡</span>
-                <span>나의 여행</span>
-                <span class="lock">▣</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-bottom">
-            <div class="weather-card">
-                <div class="weather-icon">☼</div>
-                <div>
-                    <div class="weather-main">강릉 20°C</div>
-                    <div class="weather-sub">맑음</div>
-                </div>
-            </div>
-
-            <div class="login-area">
-                <div class="login-avatar">●</div>
-                <div>로그인</div>
-            </div>
-        </div>
-    </aside>
-
-    <main class="content">
-        <div class="main-grid">
-
-            <section class="glass-panel left-panel">
-
-                <div class="panel-header">
-                    <div>
-                        <h1 class="panel-title" id="categoryTitle">주변 식당</h1>
-                        <p class="panel-desc" id="categoryDesc">AI 추천 여행지 주변 식당을 확인해보세요.</p>
-                    </div>
-
-                    <button type="button" class="filter-btn">거리순⌄</button>
-                </div>
-
-                <div class="category-tabs">
-                    <button type="button" class="category-button active"
-                            onclick="showCategory('restaurants', this, '주변 식당', 'AI 추천 여행지 주변 식당을 확인해보세요.')">
-                        식당
-                    </button>
-                    <button type="button" class="category-button"
-                            onclick="showCategory('cafes', this, '주변 카페', '여행지 근처에서 쉬어갈 카페를 확인해보세요.')">
-                        카페
-                    </button>
-                    <button type="button" class="category-button"
-                            onclick="showCategory('hotels', this, '주변 숙소', '여행지 근처 숙소 정보를 확인해보세요.')">
-                        숙소
-                    </button>
-                </div>
-
-                <div class="custom-search-box">
-                    <div class="search-input-wrap">
-                        <span>⌕</span>
-                        <input type="text"
-                               id="customPlaceInput"
-                               placeholder="업체명 또는 키워드를 입력하세요. 예: 초당순두부">
-                    </div>
-                    <button type="button" class="add-btn" onclick="searchCustomPlace()">업체 추가</button>
-                </div>
-
-                <div id="customSearchResults" class="custom-results hidden"></div>
-
-                <div id="restaurants" class="place-list">
-
-                    <div class="place-card"
-                         th:each="place : ${restaurants}"
-                         th:attr="
-                         data-title=${place.title},
-                         data-mapx=${place.mapx},
-                         data-mapy=${place.mapy}
-                         ">
-
-						 <div class="place-thumb">
-
-						     <img th:if="${place.imageUrl != null and place.imageUrl != ''}"
-						          th:src="${place.imageUrl}"
-						          th:alt="${place.title}"
-						          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-
-						     <span style="display:none;"
-						           th:if="${place.imageUrl != null and place.imageUrl != ''}">
-						         ▧
-						     </span>
-
-						     <span th:if="${place.imageUrl == null or place.imageUrl == ''}">
-						         ▧
-						     </span>
-
-						 </div>
-						 
-
-                        <div class="place-info">
-                            <strong class="place-name" th:text="${place.title}">초당순두부 본점</strong>
-                            <p class="place-meta" th:text="${place.category}">한식 · 두부요리</p>
-                            <p class="place-address"
-                               th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
-                                강원특별자치도 강릉시 초당순두부길 77
-                            </p>
-                            <p class="place-time">◷ 10:00 - 20:00</p>
-                        </div>
-
-                        <div class="place-actions">
-                            <p class="distance-text">
-                                <span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.26</span>km
-                            </p>
-
-                            <button type="button"
-                                    class="mini-btn primary"
-                                    th:attr="data-place-name=${place.title}"
-                                    onclick="loadPlaceDetail(this); event.stopPropagation();">
-                                리뷰 보기
-                            </button>
-
-                            <button type="button"
-                                    class="mini-btn"
-                                    onclick="focusPlaceFromCard(this); event.stopPropagation();">
-                                ⌖ 지도 보기
-                            </button>
-                        </div>
-
-                        <div class="dynamic-detail-area"></div>
-                    </div>
-
-                    <p th:if="${restaurants == null or restaurants.isEmpty()}">
-                        검색된 식당 정보가 없습니다.
-                    </p>
-                </div>
-
-                <div id="cafes" class="place-list hidden">
-
-                    <div class="place-card"
-                         th:each="place : ${cafes}"
-                         th:attr="
-                         data-title=${place.title},
-                         data-mapx=${place.mapx},
-                         data-mapy=${place.mapy}
-                         ">
-
-						 <div class="place-thumb">
-
-						     <img th:if="${place.imageUrl != null and place.imageUrl != ''}"
-						          th:src="${place.imageUrl}"
-						          th:alt="${place.title}"
-						          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-
-						     <span style="display:none;"
-						           th:if="${place.imageUrl != null and place.imageUrl != ''}">
-						         ▧
-						     </span>
-
-						     <span th:if="${place.imageUrl == null or place.imageUrl == ''}">
-						         ▧
-						     </span>
-
-						 </div>
-                        <div class="place-info">
-                            <strong class="place-name" th:text="${place.title}">카페명</strong>
-                            <p class="place-meta" th:text="${place.category}">카페</p>
-                            <p class="place-address"
-                               th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
-                                주소
-                            </p>
-                            <p class="place-time">◷ 영업시간 정보 확인 필요</p>
-                        </div>
-
-                        <div class="place-actions">
-                            <p class="distance-text">
-                                <span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.48</span>km
-                            </p>
-
-                            <button type="button"
-                                    class="mini-btn primary"
-                                    th:attr="data-place-name=${place.title}"
-                                    onclick="loadPlaceDetail(this); event.stopPropagation();">
-                                리뷰 보기
-                            </button>
-
-                            <button type="button"
-                                    class="mini-btn"
-                                    onclick="focusPlaceFromCard(this); event.stopPropagation();">
-                                ⌖ 지도 보기
-                            </button>
-                        </div>
-
-                        <div class="dynamic-detail-area"></div>
-                    </div>
-
-                    <p th:if="${cafes == null or cafes.isEmpty()}">
-                        검색된 카페 정보가 없습니다.
-                    </p>
-                </div>
-
-                <div id="hotels" class="place-list hidden">
-
-                    <div class="place-card"
-                         th:each="place : ${hotels}"
-                         th:attr="
-                         data-title=${place.title},
-                         data-mapx=${place.mapx},
-                         data-mapy=${place.mapy}
-                         ">
-						 <div class="place-thumb">
-
-						     <img th:if="${place.imageUrl != null and place.imageUrl != ''}"
-						          th:src="${place.imageUrl}"
-						          th:alt="${place.title}"
-						          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-
-						     <span style="display:none;"
-						           th:if="${place.imageUrl != null and place.imageUrl != ''}">
-						         ▧
-						     </span>
-
-						     <span th:if="${place.imageUrl == null or place.imageUrl == ''}">
-						         ▧
-						     </span>
-
-						 </div>
-                        <div class="place-info">
-                            <strong class="place-name" th:text="${place.title}">숙소명</strong>
-                            <p class="place-meta" th:text="${place.category}">숙소</p>
-                            <p class="place-address"
-                               th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
-                                주소
-                            </p>
-                            <p class="place-time">◷ 체크인 정보 확인 필요</p>
-                        </div>
-
-                        <div class="place-actions">
-                            <p class="distance-text">
-                                <span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.62</span>km
-                            </p>
-
-                            <button type="button"
-                                    class="mini-btn primary"
-                                    th:attr="data-place-name=${place.title}"
-                                    onclick="loadPlaceDetail(this); event.stopPropagation();">
-                                리뷰 보기
-                            </button>
-
-                            <button type="button"
-                                    class="mini-btn"
-                                    onclick="focusPlaceFromCard(this); event.stopPropagation();">
-                                ⌖ 지도 보기
-                            </button>
-                        </div>
-
-                        <div class="dynamic-detail-area"></div>
-                    </div>
-
-                    <p th:if="${hotels == null or hotels.isEmpty()}">
-                        검색된 숙소 정보가 없습니다.
-                    </p>
-                </div>
-
-            </section>
-
-            <aside class="right-zone">
-
-                <section class="glass-panel map-card">
-                    <div class="section-head">
-                        <h2 class="section-title">주변 지도</h2>
-                        <button type="button" class="outline-btn">전체 지도 보기</button>
-                    </div>
-
-                    <div id="map"></div>
-                </section>
-
-                <section class="glass-panel recommend-card">
-                    <div class="section-head">
-                        <h2 class="section-title">AI 추천 정보</h2>
-                        <button type="button" class="outline-btn">더보기 ›</button>
-                    </div>
-
-                    <div class="recommend-main">
-						<div class="recommend-thumb">
-
-						    <img th:if="${targetPlaces != null
-						                 and !targetPlaces.isEmpty()
-						                 and targetPlaces[0].imageUrl != null}"
-						         th:src="${targetPlaces[0].imageUrl}"
-						         th:alt="${targetPlaces[0].title}">
-
-						    <span th:if="${targetPlaces == null
-						                  or targetPlaces.isEmpty()
-						                  or targetPlaces[0].imageUrl == null}">
-						        ▧
-						    </span>
-
-						</div>
-
-                        <div>
-                            <h3 class="recommend-name"
-                                th:text="${recommendationResult != null ? recommendationResult.recommendedPlaceName : '추천 여행지'}">
-                                강릉올림픽파크
-                            </h3>
-
-                            <p class="recommend-address" th:text="${naverSearchBaseQuery}">
-                                강원특별자치도 강릉시 수리골길 386
-                            </p>
-                        </div>
-
-                        <div class="recommend-distance">0.26km</div>
-                    </div>
-
-                    <div class="info-table">
-
-                        <div class="info-row">
-                            <div class="info-label">
-                                <span class="badge-icon">♡</span>
-                                추천 테마
-                            </div>
-                            <div class="info-value"
-                                 th:text="${recommendationResult != null ? recommendationResult.selectedThemeName : '-'}">
-                                올림픽 유산
-                            </div>
-                        </div>
-
-                        <div class="info-row">
-                            <div class="info-label">
-                                <span class="badge-icon">♡</span>
-                                추천 이유
-                            </div>
-                            <div class="info-value"
-                                 th:text="${recommendationResult != null ? recommendationResult.reason : '-'}">
-                                2018 동계올림픽의 감동과 역사를 체험할 수 있는 공간으로,
-                                문화·역사적인 여행 분위기에 잘 어울립니다.
-                            </div>
-                        </div>
-
-                        <div class="info-row">
-                            <div class="info-label">
-                                <span class="badge-icon">△</span>
-                                주의사항
-                            </div>
-                            <div class="info-value"
-                                 th:text="${recommendationResult != null ? recommendationResult.caution : '-'}">
-                                대중교통 이용 시 환승 이동 시간을 고려하세요.
-                            </div>
-                        </div>
-
-                        <div class="info-row">
-                            <div class="info-label">
-                                <span class="badge-icon">♧</span>
-                                대체 장소
-                            </div>
-                            <div class="info-value"
-                                 th:text="${recommendationResult != null ? recommendationResult.alternativePlaceName : '-'}">
-                                강릉아트센터
-                            </div>
-                        </div>
-
-                    </div>
-
-                    <div id="targetPlaceData"
-                         th:if="${targetPlaces != null and !targetPlaces.isEmpty()}"
-                         th:attr="
-                         data-title=${targetPlaces[0].title},
-                         data-mapx=${targetPlaces[0].mapx},
-                         data-mapy=${targetPlaces[0].mapy}
-                         ">
-                    </div>
-                </section>
-
-            </aside>
-
-        </div>
-
-        <section class="glass-panel debug-card">
-            <h3>AI 원본 응답</h3>
-            <pre th:text="${gptResult}"></pre>
-        </section>
-
-    </main>
-</div>
+	<body>
+
+	<div class="app">
+
+	    <aside class="sidebar">
+	        <div class="brand">
+	            <div class="brand-icon">✦</div>
+	            <div>
+	                <div class="brand-title">FlowTrip</div>
+	                <div class="brand-sub">AI 여행 추천 서비스</div>
+	            </div>
+	        </div>
+
+	        <nav class="side-menu">
+	            <a href="/" class="side-item">
+	                <span class="side-icon">✦</span>
+	                <span>여행 추천</span>
+	            </a>
+
+	            <a href="#" class="side-item locked">
+	                <span class="side-icon">♧</span>
+	                <span>지도 보기</span>
+	                <span class="lock">▣</span>
+	            </a>
+
+	            <a href="#" class="side-item locked">
+	                <span class="side-icon">♨</span>
+	                <span>주변 정보</span>
+	                <span class="lock">▣</span>
+	            </a>
+
+	            <a href="/my-travel" class="side-item">
+	                <span class="side-icon">♡</span>
+	                <span>나의 여행</span>
+	            </a>
+	        </nav>
+
+	        <div class="sidebar-bottom">
+	            <div class="weather-card">
+	                <div class="weather-icon">☼</div>
+	                <div>
+	                    <div class="weather-main">강원 여행</div>
+	                    <div class="weather-sub">날씨 기반 추천 준비 중</div>
+	                </div>
+	            </div>
+
+	            <div class="login-area">
+	                <div class="login-avatar">●</div>
+	                <div>로그인</div>
+	            </div>
+	        </div>
+	    </aside>
+
+	    <main class="content">
+	        <div class="main-grid">
+
+	            <section class="glass-panel left-panel">
+
+	                <div class="panel-header">
+	                    <div>
+	                        <h1 class="panel-title" id="categoryTitle">주변 식당</h1>
+	                        <p class="panel-desc" id="categoryDesc">AI 추천 여행지 주변 식당을 확인해보세요.</p>
+	                    </div>
+
+	                    <button type="button" class="filter-btn">거리순⌄</button>
+	                </div>
+
+	                <div class="category-tabs">
+	                    <button type="button" class="category-button active"
+	                            onclick="showCategory('restaurants', this, '주변 식당', 'AI 추천 여행지 주변 식당을 확인해보세요.')">
+	                        식당
+	                    </button>
+
+	                    <button type="button" class="category-button"
+	                            onclick="showCategory('cafes', this, '주변 카페', '여행지 근처에서 쉬어갈 카페를 확인해보세요.')">
+	                        카페
+	                    </button>
+
+	                    <button type="button" class="category-button"
+	                            onclick="showCategory('hotels', this, '주변 숙소', '여행지 근처 숙소 정보를 확인해보세요.')">
+	                        숙소
+	                    </button>
+
+	                    <button type="button" class="category-button"
+	                            onclick="showCategory('attractions', this, '주변 관광지', '추천 코스에 추가할 만한 주변 관광지를 확인해보세요.')">
+	                        관광지
+	                    </button>
+	                </div>
+
+	                <div class="custom-search-box">
+	                    <div class="search-input-wrap">
+	                        <span>⌕</span>
+	                        <input type="text"
+	                               id="customPlaceInput"
+	                               placeholder="업체명 또는 키워드를 입력하세요. 예: 초당순두부">
+	                    </div>
+
+	                    <button type="button" class="add-btn" onclick="searchCustomPlace()">업체 검색</button>
+	                </div>
+
+	                <div id="customSearchResults" class="custom-results hidden"></div>
+
+	                <div id="restaurants" class="place-list">
+
+	                    <div class="place-card"
+	                         th:each="place : ${restaurants}"
+	                         th:attr="
+	                         data-title=${place.title},
+	                         data-category=${place.category},
+	                         data-address=${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address},
+	                         data-mapx=${place.mapx},
+	                         data-mapy=${place.mapy},
+	                         data-image=${place.imageUrl}
+	                         ">
+
+	                        <div class="place-thumb">
+	                            <img th:if="${place.imageUrl != null and place.imageUrl != ''}"
+	                                 th:src="${place.imageUrl}"
+	                                 th:alt="${place.title}"
+	                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+	                            <span style="display:none;"
+	                                  th:if="${place.imageUrl != null and place.imageUrl != ''}">
+	                                ▧
+	                            </span>
+
+	                            <span th:if="${place.imageUrl == null or place.imageUrl == ''}">
+	                                ▧
+	                            </span>
+	                        </div>
+
+	                        <div class="place-info">
+	                            <strong class="place-name" th:text="${place.title}">식당명</strong>
+	                            <p class="place-meta" th:text="${place.category}">카테고리</p>
+	                            <p class="place-address"
+	                               th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
+	                                주소
+	                            </p>
+	                            <p class="place-time">◷ 영업시간 정보 확인 필요</p>
+	                        </div>
+
+	                        <div class="place-actions">
+	                            <p class="distance-text">
+	                                <span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.00</span>km
+	                            </p>
+
+	                            <button type="button"
+	                                    class="mini-btn primary"
+	                                    th:attr="data-place-name=${place.title}"
+	                                    onclick="loadPlaceDetail(this); event.stopPropagation();">
+	                                리뷰 보기
+	                            </button>
+
+	                            <button type="button"
+	                                    class="mini-btn"
+	                                    onclick="focusPlaceFromCard(this); event.stopPropagation();">
+	                                ⌖ 지도 보기
+	                            </button>
+
+	                            <button type="button"
+	                                    class="mini-btn course"
+	                                    onclick="addToCourse(this); event.stopPropagation();">
+	                                + 일정
+	                            </button>
+	                        </div>
+
+	                        <div class="dynamic-detail-area"></div>
+	                    </div>
+
+	                    <p th:if="${restaurants == null or restaurants.isEmpty()}">
+	                        검색된 식당 정보가 없습니다.
+	                    </p>
+	                </div>
+
+	                <div id="cafes" class="place-list hidden">
+
+	                    <div class="place-card"
+	                         th:each="place : ${cafes}"
+	                         th:attr="
+	                         data-title=${place.title},
+	                         data-category=${place.category},
+	                         data-address=${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address},
+	                         data-mapx=${place.mapx},
+	                         data-mapy=${place.mapy},
+	                         data-image=${place.imageUrl}
+	                         ">
+
+	                        <div class="place-thumb">
+	                            <img th:if="${place.imageUrl != null and place.imageUrl != ''}"
+	                                 th:src="${place.imageUrl}"
+	                                 th:alt="${place.title}"
+	                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+	                            <span style="display:none;"
+	                                  th:if="${place.imageUrl != null and place.imageUrl != ''}">
+	                                ▧
+	                            </span>
+
+	                            <span th:if="${place.imageUrl == null or place.imageUrl == ''}">
+	                                ▧
+	                            </span>
+	                        </div>
+
+	                        <div class="place-info">
+	                            <strong class="place-name" th:text="${place.title}">카페명</strong>
+	                            <p class="place-meta" th:text="${place.category}">카페</p>
+	                            <p class="place-address"
+	                               th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
+	                                주소
+	                            </p>
+	                            <p class="place-time">◷ 영업시간 정보 확인 필요</p>
+	                        </div>
+
+	                        <div class="place-actions">
+	                            <p class="distance-text">
+	                                <span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.00</span>km
+	                            </p>
+
+	                            <button type="button"
+	                                    class="mini-btn primary"
+	                                    th:attr="data-place-name=${place.title}"
+	                                    onclick="loadPlaceDetail(this); event.stopPropagation();">
+	                                리뷰 보기
+	                            </button>
+
+	                            <button type="button"
+	                                    class="mini-btn"
+	                                    onclick="focusPlaceFromCard(this); event.stopPropagation();">
+	                                ⌖ 지도 보기
+	                            </button>
+
+	                            <button type="button"
+	                                    class="mini-btn course"
+	                                    onclick="addToCourse(this); event.stopPropagation();">
+	                                + 일정
+	                            </button>
+	                        </div>
+
+	                        <div class="dynamic-detail-area"></div>
+	                    </div>
+
+	                    <p th:if="${cafes == null or cafes.isEmpty()}">
+	                        검색된 카페 정보가 없습니다.
+	                    </p>
+	                </div>
+
+	                <div id="hotels" class="place-list hidden">
+
+	                    <div class="place-card"
+	                         th:each="place : ${hotels}"
+	                         th:attr="
+	                         data-title=${place.title},
+	                         data-category=${place.category},
+	                         data-address=${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address},
+	                         data-mapx=${place.mapx},
+	                         data-mapy=${place.mapy},
+	                         data-image=${place.imageUrl}
+	                         ">
+
+	                        <div class="place-thumb">
+	                            <img th:if="${place.imageUrl != null and place.imageUrl != ''}"
+	                                 th:src="${place.imageUrl}"
+	                                 th:alt="${place.title}"
+	                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+	                            <span style="display:none;"
+	                                  th:if="${place.imageUrl != null and place.imageUrl != ''}">
+	                                ▧
+	                            </span>
+
+	                            <span th:if="${place.imageUrl == null or place.imageUrl == ''}">
+	                                ▧
+	                            </span>
+	                        </div>
+
+	                        <div class="place-info">
+	                            <strong class="place-name" th:text="${place.title}">숙소명</strong>
+	                            <p class="place-meta" th:text="${place.category}">숙소</p>
+	                            <p class="place-address"
+	                               th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
+	                                주소
+	                            </p>
+	                            <p class="place-time">◷ 체크인 정보 확인 필요</p>
+	                        </div>
+
+	                        <div class="place-actions">
+	                            <p class="distance-text">
+	                                <span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.00</span>km
+	                            </p>
+
+	                            <button type="button"
+	                                    class="mini-btn primary"
+	                                    th:attr="data-place-name=${place.title}"
+	                                    onclick="loadPlaceDetail(this); event.stopPropagation();">
+	                                리뷰 보기
+	                            </button>
+
+	                            <button type="button"
+	                                    class="mini-btn"
+	                                    onclick="focusPlaceFromCard(this); event.stopPropagation();">
+	                                ⌖ 지도 보기
+	                            </button>
+
+	                            <button type="button"
+	                                    class="mini-btn course"
+	                                    onclick="addToCourse(this); event.stopPropagation();">
+	                                + 일정
+	                            </button>
+	                        </div>
+
+	                        <div class="dynamic-detail-area"></div>
+	                    </div>
+
+	                    <p th:if="${hotels == null or hotels.isEmpty()}">
+	                        검색된 숙소 정보가 없습니다.
+	                    </p>
+	                </div>
+
+	                <div id="attractions" class="place-list hidden">
+
+	                    <div class="place-card"
+	                         th:each="place : ${attractions}"
+	                         th:attr="
+	                         data-title=${place.title},
+	                         data-category=${place.category},
+	                         data-address=${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address},
+	                         data-mapx=${place.mapx},
+	                         data-mapy=${place.mapy},
+	                         data-image=${place.imageUrl}
+	                         ">
+
+	                        <div class="place-thumb">
+	                            <img th:if="${place.imageUrl != null and place.imageUrl != ''}"
+	                                 th:src="${place.imageUrl}"
+	                                 th:alt="${place.title}"
+	                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+	                            <span style="display:none;"
+	                                  th:if="${place.imageUrl != null and place.imageUrl != ''}">
+	                                ▧
+	                            </span>
+
+	                            <span th:if="${place.imageUrl == null or place.imageUrl == ''}">
+	                                ▧
+	                            </span>
+	                        </div>
+
+	                        <div class="place-info">
+	                            <strong class="place-name" th:text="${place.title}">관광지명</strong>
+	                            <p class="place-meta" th:text="${place.category}">관광지</p>
+	                            <p class="place-address"
+	                               th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
+	                                주소
+	                            </p>
+	                            <p class="place-time">◷ 운영시간 정보 확인 필요</p>
+	                        </div>
+
+	                        <div class="place-actions">
+	                            <p class="distance-text">
+	                                <span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.00</span>km
+	                            </p>
+
+	                            <button type="button"
+	                                    class="mini-btn primary"
+	                                    th:attr="data-place-name=${place.title}"
+	                                    onclick="loadPlaceDetail(this); event.stopPropagation();">
+	                                리뷰 보기
+	                            </button>
+
+	                            <button type="button"
+	                                    class="mini-btn"
+	                                    onclick="focusPlaceFromCard(this); event.stopPropagation();">
+	                                ⌖ 지도 보기
+	                            </button>
+
+	                            <button type="button"
+	                                    class="mini-btn course"
+	                                    onclick="addToCourse(this); event.stopPropagation();">
+	                                + 일정
+	                            </button>
+	                        </div>
+
+	                        <div class="dynamic-detail-area"></div>
+	                    </div>
+
+	                    <p th:if="${attractions == null or attractions.isEmpty()}">
+	                        검색된 관광지 정보가 없습니다.
+	                    </p>
+	                </div>
+
+	            </section>
+
+	            <aside class="right-zone">
+
+	                <section class="glass-panel map-card">
+	                    <div class="section-head">
+	                        <h2 class="section-title">주변 지도</h2>
+	                        <button type="button" class="outline-btn" onclick="fitAllMarkers()">전체 보기</button>
+	                    </div>
+
+	                    <div id="map"></div>
+	                </section>
+
+	                <section class="glass-panel recommend-card">
+	                    <div class="section-head">
+	                        <h2 class="section-title">AI 추천 정보</h2>
+	                        <button type="button" class="outline-btn">더보기 ›</button>
+	                    </div>
+
+	                    <div class="recommend-main">
+	                        <div class="recommend-thumb">
+	                            <img th:if="${targetPlaces != null
+	                                         and !targetPlaces.isEmpty()
+	                                         and targetPlaces[0].imageUrl != null}"
+	                                 th:src="${targetPlaces[0].imageUrl}"
+	                                 th:alt="${targetPlaces[0].title}">
+
+	                            <span th:if="${targetPlaces == null
+	                                          or targetPlaces.isEmpty()
+	                                          or targetPlaces[0].imageUrl == null}">
+	                                ▧
+	                            </span>
+	                        </div>
+
+	                        <div>
+	                            <h3 class="recommend-name"
+	                                th:text="${recommendationResult != null ? recommendationResult.recommendedPlaceName : '추천 여행지'}">
+	                                추천 여행지
+	                            </h3>
+
+	                            <p class="recommend-address" th:text="${naverSearchBaseQuery}">
+	                                검색 기준어
+	                            </p>
+	                        </div>
+
+	                        <div class="recommend-distance">추천지</div>
+	                    </div>
+
+	                    <div class="congestion-score-box"
+	                         th:if="${recommendationResult != null and recommendationResult.congestionScore != null}">
+
+	                        <div class="score-circle"
+	                             th:text="${recommendationResult.congestionScore}">
+	                            65
+	                        </div>
+
+	                        <div>
+	                            <div class="score-text-title">
+	                                FlowTrip 혼잡도 분석 점수
+	                            </div>
+	                            <div class="score-text-desc">
+	                                여행 날짜, 주말 여부, 성수기, 장소 특성, 인기 가능성을 기준으로 계산한 예상 혼잡도입니다.
+	                            </div>
+	                        </div>
+	                    </div>
+
+	                    <div class="info-table">
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">♡</span>
+	                                추천 테마
+	                            </div>
+	                            <div class="info-value"
+	                                 th:text="${recommendationResult != null ? recommendationResult.selectedThemeName : '-'}">
+	                                추천 테마
+	                            </div>
+	                        </div>
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">♡</span>
+	                                추천 이유
+	                            </div>
+	                            <div class="info-value"
+	                                 th:text="${recommendationResult != null ? recommendationResult.reason : '-'}">
+	                                추천 이유
+	                            </div>
+	                        </div>
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">◈</span>
+	                                예상 혼잡도
+	                            </div>
+	                            <div class="info-value">
+	                                <span class="congestion-badge"
+	                                      th:if="${recommendationResult != null}"
+	                                      th:attr="data-level=${recommendationResult.congestionLevel}"
+	                                      th:text="${recommendationResult.congestionLevel != null and recommendationResult.congestionLevel != '' ? recommendationResult.congestionLevel : '보통'}">
+	                                    보통
+	                                </span>
+
+	                                <span th:if="${recommendationResult != null and recommendationResult.congestionScore != null}">
+	                                    (<span th:text="${recommendationResult.congestionScore}">65</span>점)
+	                                </span>
+
+	                                <span th:if="${recommendationResult == null}">-</span>
+	                            </div>
+	                        </div>
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">⌛</span>
+	                                혼잡도 분석
+	                            </div>
+	                            <div class="info-value"
+	                                 th:text="${recommendationResult != null ? recommendationResult.congestionReason : '-'}">
+	                                혼잡도 분석
+	                            </div>
+	                        </div>
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">☼</span>
+	                                추천 방문 시간
+	                            </div>
+	                            <div class="info-value"
+	                                 th:text="${recommendationResult != null ? recommendationResult.recommendedVisitTime : '-'}">
+	                                추천 방문 시간
+	                            </div>
+	                        </div>
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">☂</span>
+	                                날씨 팁
+	                            </div>
+	                            <div class="info-value"
+	                                 th:text="${recommendationResult != null ? recommendationResult.weatherAdvice : '-'}">
+	                                날씨 팁
+	                            </div>
+	                        </div>
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">◎</span>
+	                                혼잡 신호
+	                            </div>
+	                            <div class="info-value">
+	                                <div class="signal-list">
+	                                    <div class="signal-item"
+	                                         th:text="${recommendationResult != null and recommendationResult.weekendSignal != null ? recommendationResult.weekendSignal : '-'}">
+	                                        주말 신호
+	                                    </div>
+
+	                                    <div class="signal-item"
+	                                         th:text="${recommendationResult != null and recommendationResult.seasonSignal != null ? recommendationResult.seasonSignal : '-'}">
+	                                        성수기 신호
+	                                    </div>
+
+	                                    <div class="signal-item"
+	                                         th:text="${recommendationResult != null and recommendationResult.demandSignal != null ? recommendationResult.demandSignal : '-'}">
+	                                        수요 신호
+	                                    </div>
+
+	                                    <div class="signal-item"
+	                                         th:text="${recommendationResult != null and recommendationResult.weatherSignal != null ? recommendationResult.weatherSignal : '-'}">
+	                                        날씨 신호
+	                                    </div>
+	                                </div>
+	                            </div>
+	                        </div>
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">↺</span>
+	                                혼잡 회피
+	                            </div>
+	                            <div class="info-value"
+	                                 th:text="${recommendationResult != null and recommendationResult.alternativeGuide != null ? recommendationResult.alternativeGuide : '-'}">
+	                                혼잡 회피 가이드
+	                            </div>
+	                        </div>
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">△</span>
+	                                주의사항
+	                            </div>
+	                            <div class="info-value"
+	                                 th:text="${recommendationResult != null ? recommendationResult.caution : '-'}">
+	                                주의사항
+	                            </div>
+	                        </div>
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">♧</span>
+	                                대체 장소
+	                            </div>
+	                            <div class="info-value"
+	                                 th:text="${recommendationResult != null ? recommendationResult.alternativePlaceName : '-'}">
+	                                대체 장소
+	                            </div>
+	                        </div>
+
+	                        <div class="info-row">
+	                            <div class="info-label">
+	                                <span class="badge-icon">↳</span>
+	                                추천 동선
+	                            </div>
+	                            <div class="info-value">
+	                                <ol class="route-list"
+	                                    th:if="${recommendationResult != null
+	                                            and recommendationResult.travelRoute != null
+	                                            and !recommendationResult.travelRoute.isEmpty()}">
+	                                    <li th:each="route : ${recommendationResult.travelRoute}"
+	                                        th:text="${route}">
+	                                        추천 동선
+	                                    </li>
+	                                </ol>
+
+	                                <span th:if="${recommendationResult == null
+	                                              or recommendationResult.travelRoute == null
+	                                              or recommendationResult.travelRoute.isEmpty()}">
+	                                    추천 동선 정보가 없습니다.
+	                                </span>
+	                            </div>
+	                        </div>
+
+	                    </div>
+
+	                    <div id="targetPlaceData"
+	                         th:if="${targetPlaces != null and !targetPlaces.isEmpty()}"
+	                         th:attr="
+	                         data-title=${targetPlaces[0].title},
+	                         data-mapx=${targetPlaces[0].mapx},
+	                         data-mapy=${targetPlaces[0].mapy}
+	                         ">
+	                    </div>
+	                </section>
+
+	                <section class="glass-panel course-card" id="myCourseSection">
+	                    <div class="section-head">
+	                        <h2 class="section-title">나의 여행 코스</h2>
+	                        <div class="course-toolbar">
+	                            <button type="button" class="outline-btn" onclick="saveCourse()">코스 저장</button>
+	                            <button type="button" class="outline-btn" onclick="clearCourse()">초기화</button>
+	                        </div>
+	                    </div>
+
+	                    <div id="myTravelCourseList">
+	                        <p class="empty-course">
+	                            아직 추가된 여행지가 없습니다.<br>
+	                            왼쪽 업체 카드에서 <b>+ 일정</b> 버튼을 눌러 나만의 여행 코스를 만들어보세요.
+	                        </p>
+	                    </div>
+
+	                    <div id="courseSummary" class="course-summary hidden"></div>
+	                </section>
+
+	            </aside>
+
+	        </div>
+
+	        <section class="glass-panel debug-card">
+	            <h3>AI 원본 응답</h3>
+	            <pre th:text="${gptResult}"></pre>
+	        </section>
+
+	    </main>
+	</div>
 
 <script th:src="@{'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + ${naverMapClientId}}"></script>
 
@@ -1312,6 +1687,11 @@
 
     let customMarkers = [];
     let customInfoWindows = [];
+
+    let courseMarkers = [];
+    let courseInfoWindows = [];
+
+    let myTravelCourse = [];
 
     window.onload = function () {
         const target = document.getElementById('targetPlaceData');
@@ -1392,6 +1772,10 @@
     }
 
     function drawCategoryMarkers(categoryId) {
+        if (!map) {
+            return;
+        }
+
         clearCategoryMarkers();
 
         const cards = document.querySelectorAll('#' + categoryId + ' .place-card');
@@ -1450,8 +1834,13 @@
         document.querySelectorAll('.place-list')
             .forEach(list => list.classList.add('hidden'));
 
-        document.getElementById(categoryId)
-            .classList.remove('hidden');
+        const targetList = document.getElementById(categoryId);
+
+        if (!targetList) {
+            return;
+        }
+
+        targetList.classList.remove('hidden');
 
         document.querySelectorAll('.category-button')
             .forEach(btn => btn.classList.remove('active'));
@@ -1473,7 +1862,6 @@
 
         const mapx = card.getAttribute('data-mapx');
         const mapy = card.getAttribute('data-mapy');
-        const title = card.getAttribute('data-title');
 
         if (!mapx || !mapy) {
             return;
@@ -1483,7 +1871,8 @@
         map.setCenter(position);
         map.setZoom(16);
 
-        const targetIndex = Array.from(document.querySelectorAll('.place-list:not(.hidden) .place-card')).indexOf(card);
+        const visibleCards = Array.from(document.querySelectorAll('.place-list:not(.hidden) .place-card'));
+        const targetIndex = visibleCards.indexOf(card);
 
         if (categoryInfoWindows[targetIndex] && categoryMarkers[targetIndex]) {
             categoryInfoWindows.forEach(iw => iw.close());
@@ -1558,36 +1947,59 @@
             return;
         }
 
-		places.forEach(place => {
-		    const card = document.createElement('div');
-		    card.className = "place-card";
+        places.forEach(place => {
+            const card = document.createElement('div');
+            card.className = "place-card";
 
-		    const imageHtml = place.imageUrl
-		        ? '<img src="' + escapeHtml(place.imageUrl) + '" alt="' + escapeHtml(place.title) + '">'
-		        : '<span>▧</span>';
+            card.setAttribute("data-title", place.title || "");
+            card.setAttribute("data-category", place.category || "");
+            card.setAttribute("data-address", place.roadAddress || place.address || "");
+            card.setAttribute("data-mapx", place.mapx || "");
+            card.setAttribute("data-mapy", place.mapy || "");
+            card.setAttribute("data-image", place.imageUrl || "");
 
-		    card.innerHTML =
-		        '<div class="place-thumb">' + imageHtml + '</div>'
-		        + '<div class="place-info">'
-		        + '<strong class="place-name">' + escapeHtml(place.title) + '</strong>'
-		        + '<p class="place-meta">' + escapeHtml(place.category || "") + '</p>'
-		        + '<p class="place-address">' + escapeHtml(place.roadAddress || place.address || "") + '</p>'
-		        + '</div>'
-		        + '<div class="place-actions">'
-		        + '<p class="distance-text">' + Number(place.distanceKm).toFixed(2) + 'km</p>'
-		        + '<button type="button" class="mini-btn">⌖ 지도 보기</button>'
-		        + '</div>';
+            const imageHtml = place.imageUrl
+                ? '<img src="' + escapeHtml(place.imageUrl) + '" alt="' + escapeHtml(place.title) + '">'
+                : '<span>▧</span>';
 
-		    card.addEventListener('click', function () {
-		        drawCustomMarker(place.title, place.mapx, place.mapy);
-		    });
+            card.innerHTML =
+                '<div class="place-thumb">' + imageHtml + '</div>'
+                + '<div class="place-info">'
+                + '<strong class="place-name">' + escapeHtml(place.title) + '</strong>'
+                + '<p class="place-meta">' + escapeHtml(place.category || "") + '</p>'
+                + '<p class="place-address">' + escapeHtml(place.roadAddress || place.address || "") + '</p>'
+                + '<p class="place-time">◷ 영업시간 정보 확인 필요</p>'
+                + '</div>'
+                + '<div class="place-actions">'
+                + '<p class="distance-text">' + safeDistance(place.distanceKm) + 'km</p>'
+                + '<button type="button" class="mini-btn" onclick="drawCustomMarkerFromCard(this); event.stopPropagation();">⌖ 지도 보기</button>'
+                + '<button type="button" class="mini-btn course" onclick="addToCourse(this); event.stopPropagation();">+ 일정</button>'
+                + '</div>';
 
-		    resultsBox.appendChild(card);
-		});
-		}
+            card.addEventListener('click', function () {
+                drawCustomMarker(place.title, place.mapx, place.mapy);
+            });
+
+            resultsBox.appendChild(card);
+        });
+    }
+
+    function drawCustomMarkerFromCard(button) {
+        const card = button.closest('.place-card');
+
+        if (!card) {
+            return;
+        }
+
+        drawCustomMarker(
+            card.getAttribute('data-title'),
+            card.getAttribute('data-mapx'),
+            card.getAttribute('data-mapy')
+        );
+    }
 
     function drawCustomMarker(title, mapx, mapy) {
-        if (!mapx || !mapy) {
+        if (!map || !mapx || !mapy) {
             return;
         }
 
@@ -1617,6 +2029,242 @@
 
         map.setCenter(position);
         map.setZoom(16);
+    }
+
+    function addToCourse(button) {
+        const card = button.closest('.place-card');
+
+        if (!card) {
+            return;
+        }
+
+        const title = card.getAttribute('data-title') || card.querySelector('.place-name')?.innerText || '';
+        const category = card.getAttribute('data-category') || card.querySelector('.place-meta')?.innerText || '';
+        const address = card.getAttribute('data-address') || card.querySelector('.place-address')?.innerText || '';
+        const mapx = card.getAttribute('data-mapx') || '';
+        const mapy = card.getAttribute('data-mapy') || '';
+        const imageUrl = card.getAttribute('data-image') || '';
+
+        if (!title) {
+            alert("장소 정보를 찾을 수 없습니다.");
+            return;
+        }
+
+        const alreadyAdded = myTravelCourse.some(item =>
+            item.title === title &&
+            item.address === address
+        );
+
+        if (alreadyAdded) {
+            alert("이미 여행 코스에 추가된 장소입니다.");
+            return;
+        }
+
+        myTravelCourse.push({
+            title,
+            category,
+            address,
+            mapx,
+            mapy,
+            imageUrl
+        });
+
+        renderMyTravelCourse();
+        drawCourseMarker(title, mapx, mapy, myTravelCourse.length);
+
+        button.textContent = "추가됨";
+        button.disabled = true;
+    }
+
+    function renderMyTravelCourse() {
+        const container = document.getElementById('myTravelCourseList');
+        const summary = document.getElementById('courseSummary');
+
+        if (!container) {
+            return;
+        }
+
+        if (myTravelCourse.length === 0) {
+            container.innerHTML =
+                '<p class="empty-course">' +
+                '아직 추가된 여행지가 없습니다.<br>' +
+                '왼쪽 업체 카드에서 <b>+ 일정</b> 버튼을 눌러 나만의 여행 코스를 만들어보세요.' +
+                '</p>';
+
+            if (summary) {
+                summary.classList.add('hidden');
+                summary.textContent = "";
+            }
+
+            return;
+        }
+
+        container.innerHTML = "";
+
+        myTravelCourse.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = "course-item";
+
+            div.innerHTML =
+                '<div class="course-order">' + (index + 1) + '</div>'
+                + '<div>'
+                + '<div class="course-item-title">' + escapeHtml(item.title) + '</div>'
+                + '<div class="course-item-meta">'
+                + escapeHtml(item.category || "카테고리 정보 없음")
+                + '<br>'
+                + escapeHtml(item.address || "주소 정보 없음")
+                + '</div>'
+                + '</div>'
+                + '<button type="button" class="course-delete-btn" onclick="removeCourseItem(' + index + ')">×</button>';
+
+            container.appendChild(div);
+        });
+
+        if (summary) {
+            summary.classList.remove('hidden');
+            summary.textContent = "현재 " + myTravelCourse.length + "개의 장소가 여행 코스에 담겼습니다. 다음 단계에서는 이 목록을 DB에 저장하고, 나의 여행 페이지에서 다시 불러오게 만들 수 있습니다.";
+        }
+    }
+
+    function removeCourseItem(index) {
+        myTravelCourse.splice(index, 1);
+
+        redrawCourseMarkers();
+        renderMyTravelCourse();
+
+        document.querySelectorAll('.mini-btn.course').forEach(button => {
+            button.disabled = false;
+            button.textContent = "+ 일정";
+        });
+
+        myTravelCourse.forEach(item => {
+            document.querySelectorAll('.place-card').forEach(card => {
+                const title = card.getAttribute('data-title') || card.querySelector('.place-name')?.innerText || '';
+                const address = card.getAttribute('data-address') || card.querySelector('.place-address')?.innerText || '';
+
+                if (title === item.title && address === item.address) {
+                    const button = card.querySelector('.mini-btn.course');
+                    if (button) {
+                        button.disabled = true;
+                        button.textContent = "추가됨";
+                    }
+                }
+            });
+        });
+    }
+
+    function clearCourse() {
+        if (myTravelCourse.length === 0) {
+            return;
+        }
+
+        if (!confirm("담아둔 여행 코스를 모두 비울까요?")) {
+            return;
+        }
+
+        myTravelCourse = [];
+
+        courseMarkers.forEach(marker => marker.setMap(null));
+        courseInfoWindows.forEach(infoWindow => infoWindow.close());
+
+        courseMarkers = [];
+        courseInfoWindows = [];
+
+        document.querySelectorAll('.mini-btn.course').forEach(button => {
+            button.disabled = false;
+            button.textContent = "+ 일정";
+        });
+
+        renderMyTravelCourse();
+    }
+
+    function drawCourseMarker(title, mapx, mapy, order) {
+        if (!map || !mapx || !mapy) {
+            return;
+        }
+
+        const position = toLatLng(mapx, mapy);
+
+        const marker = new naver.maps.Marker({
+            position: position,
+            map: map,
+            title: title,
+            icon: {
+                content:
+                    '<div style="' +
+                    'width:34px;height:34px;border-radius:50%;' +
+                    'background:#f6c65b;color:#1e1606;' +
+                    'display:grid;place-items:center;' +
+                    'border:2px solid white;' +
+                    'font-weight:950;font-size:13px;' +
+                    'box-shadow:0 8px 18px rgba(246,198,91,.35);' +
+                    '">' + order + '</div>',
+                size: new naver.maps.Size(34, 34),
+                anchor: new naver.maps.Point(17, 17)
+            }
+        });
+
+        const infoWindow = new naver.maps.InfoWindow({
+            content:
+                '<div style="padding:10px 14px;font-size:13px;font-weight:900;white-space:nowrap;' +
+                'background:rgba(30,35,36,.92);color:#fff;border-radius:10px;">'
+                + order + '. ' + escapeHtml(title)
+                + '</div>',
+            borderWidth: 0,
+            backgroundColor: "transparent",
+            disableAnchor: true
+        });
+
+        naver.maps.Event.addListener(marker, 'click', function () {
+            courseInfoWindows.forEach(iw => iw.close());
+            infoWindow.open(map, marker);
+        });
+
+        courseMarkers.push(marker);
+        courseInfoWindows.push(infoWindow);
+
+        map.setCenter(position);
+        map.setZoom(16);
+    }
+
+    function redrawCourseMarkers() {
+        courseMarkers.forEach(marker => marker.setMap(null));
+        courseInfoWindows.forEach(infoWindow => infoWindow.close());
+
+        courseMarkers = [];
+        courseInfoWindows = [];
+
+        myTravelCourse.forEach((item, index) => {
+            drawCourseMarker(item.title, item.mapx, item.mapy, index + 1);
+        });
+    }
+
+    function fitAllMarkers() {
+        if (!map) {
+            return;
+        }
+
+        const positions = [];
+
+        if (mainMarker) {
+            positions.push(mainMarker.getPosition());
+        }
+
+        categoryMarkers.forEach(marker => positions.push(marker.getPosition()));
+        customMarkers.forEach(marker => positions.push(marker.getPosition()));
+        courseMarkers.forEach(marker => positions.push(marker.getPosition()));
+
+        if (positions.length === 0) {
+            return;
+        }
+
+        const bounds = new naver.maps.LatLngBounds();
+
+        positions.forEach(position => {
+            bounds.extend(position);
+        });
+
+        map.fitBounds(bounds);
     }
 
     function loadPlaceDetail(button) {
@@ -1741,6 +2389,16 @@
         area.appendChild(reviewBox);
     }
 
+    function safeDistance(value) {
+        const number = Number(value);
+
+        if (Number.isNaN(number)) {
+            return "0.00";
+        }
+
+        return number.toFixed(2);
+    }
+
     function escapeHtml(value) {
         if (value == null) {
             return "";
@@ -1753,6 +2411,56 @@
             .replaceAll('"', "&quot;")
             .replaceAll("'", "&#039;");
     }
+	function saveCourse() {
+	    if (myTravelCourse.length === 0) {
+	        alert("저장할 여행 코스가 없습니다.");
+	        return;
+	    }
+
+	    const payload = {
+	        title: "나의 FlowTrip 여행",
+	        startDate: "[[${request.startDate}]]",
+	        endDate: "[[${request.endDate}]]",
+	        transport: "[[${request.transport}]]",
+	        companion: "[[${request.companion}]]",
+	        moodGroup: "[[${request.moodGroup}]]",
+	        selectedThemeName: "[[${recommendationResult != null ? recommendationResult.selectedThemeName : ''}]]",
+	        recommendedPlaceName: "[[${recommendationResult != null ? recommendationResult.recommendedPlaceName : ''}]]",
+	        memo: "AI 추천 결과를 바탕으로 사용자가 직접 구성한 여행 코스입니다.",
+	        items: myTravelCourse.map((item, index) => ({
+	            placeName: item.title,
+	            category: item.category,
+	            address: item.address,
+	            mapx: item.mapx,
+	            mapy: item.mapy,
+	            imageUrl: item.imageUrl,
+	            courseOrder: index + 1,
+	            dayIndex: 1,
+	            memo: ""
+	        }))
+	    };
+
+	    fetch("/api/travel-course/save", {
+	        method: "POST",
+	        headers: {
+	            "Content-Type": "application/json"
+	        },
+	        body: JSON.stringify(payload)
+	    })
+	        .then(response => response.json())
+	        .then(data => {
+	            if (data.success) {
+	                alert("여행 코스가 저장되었습니다.");
+	                window.location.href = "/my-travel/" + data.travelPlanId;
+	            } else {
+	                alert(data.message || "저장에 실패했습니다.");
+	            }
+	        })
+	        .catch(error => {
+	            console.error(error);
+	            alert("여행 코스 저장 중 오류가 발생했습니다.");
+	        });
+	}
 </script>
 
 </body>

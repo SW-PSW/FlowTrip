@@ -56,6 +56,32 @@ public class Place {
     @Column(name = "source_note", columnDefinition = "TEXT")
     private String sourceNote;
 
+    // 지도 및 거리 계산용 좌표
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    // 혼잡도 분석용 기본 데이터
+    @Column(name = "seasonal_peak", length = 200)
+    private String seasonalPeak;
+
+    @Column(name = "congestion_level", length = 50)
+    private String congestionLevel;
+
+    @Column(name = "best_visit_time", length = 200)
+    private String bestVisitTime;
+
+    @Column(name = "closed_days", length = 200)
+    private String closedDays;
+
+    @Column(name = "operating_hours", length = 200)
+    private String operatingHours;
+
+    @Column(name = "popularity_score")
+    private Integer popularityScore;
+
     @OneToMany(mappedBy = "place")
     private List<PlaceTag> placeTags = new ArrayList<>();
 
@@ -177,6 +203,70 @@ public class Place {
 
     public void setSourceNote(String sourceNote) {
         this.sourceNote = sourceNote;
+    }
+
+    public Double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(Double latitude) {
+        this.latitude = latitude;
+    }
+
+    public Double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(Double longitude) {
+        this.longitude = longitude;
+    }
+
+    public String getSeasonalPeak() {
+        return seasonalPeak;
+    }
+
+    public void setSeasonalPeak(String seasonalPeak) {
+        this.seasonalPeak = seasonalPeak;
+    }
+
+    public String getCongestionLevel() {
+        return congestionLevel;
+    }
+
+    public void setCongestionLevel(String congestionLevel) {
+        this.congestionLevel = congestionLevel;
+    }
+
+    public String getBestVisitTime() {
+        return bestVisitTime;
+    }
+
+    public void setBestVisitTime(String bestVisitTime) {
+        this.bestVisitTime = bestVisitTime;
+    }
+
+    public String getClosedDays() {
+        return closedDays;
+    }
+
+    public void setClosedDays(String closedDays) {
+        this.closedDays = closedDays;
+    }
+
+    public String getOperatingHours() {
+        return operatingHours;
+    }
+
+    public void setOperatingHours(String operatingHours) {
+        this.operatingHours = operatingHours;
+    }
+
+    public Integer getPopularityScore() {
+        return popularityScore;
+    }
+
+    public void setPopularityScore(Integer popularityScore) {
+        this.popularityScore = popularityScore;
     }
 
     public List<PlaceTag> getPlaceTags() {

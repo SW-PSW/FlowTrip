@@ -30,37 +30,45 @@ public class NaverLocalSearchService {
     private final RestTemplate restTemplate = new RestTemplate();
 
     private static final int NAVER_LOCAL_MAX_DISPLAY = 5;
-    private static final int NAVER_LOCAL_MAX_PAGE = 2;
+    private static final int NAVER_LOCAL_MAX_PAGE = 1;
 
     public String buildSearchBaseQuery(String regionName, String placeName) {
         String safeRegionName = nullSafe(regionName).trim();
         String safePlaceName = nullSafe(placeName).trim();
 
-        if (safeRegionName.isBlank()) {
-            return safePlaceName;
+        if (safePlaceName.isBlank()) {
+            return safeRegionName;
         }
 
-        return "강원특별자치도 " + safeRegionName + " " + safePlaceName;
+        if (safeRegionName.isBlank()) {
+            return safePlaceName + " 관광지";
+        }
+
+        return "강원특별자치도 "
+                + safeRegionName
+                + " "
+                + safePlaceName
+                + " 관광지";
     }
 
     public List<NearbyPlaceDto> searchTargetPlace(String baseQuery) {
-        return searchLocal(baseQuery, 5);
+        return searchLocal(baseQuery, 1);
     }
 
     public List<NearbyPlaceDto> searchRestaurantsNear(String baseQuery) {
-        return searchLocal(baseQuery + " 근처 식당", 10);
+        return searchLocal(baseQuery + " 근처 식당", 5);
     }
 
     public List<NearbyPlaceDto> searchCafesNear(String baseQuery) {
-        return searchLocal(baseQuery + " 근처 카페", 10);
+        return searchLocal(baseQuery + " 근처 카페", 5);
     }
 
     public List<NearbyPlaceDto> searchHotelsNear(String baseQuery) {
-        return searchLocal(baseQuery + " 근처 숙소", 10);
+        return searchLocal(baseQuery + " 근처 숙소", 5);
     }
 
     public List<NearbyPlaceDto> searchPlacesByKeyword(String query) {
-        return searchLocal(query, 10);
+        return searchLocal(query, 5);
     }
 
     public void applyDistanceAndSort(NearbyPlaceDto target, List<NearbyPlaceDto> places) {
@@ -242,7 +250,7 @@ public class NaverLocalSearchService {
     }
 
     private double parseCoord(String value) {
-        return Double.parseDouble(value) / 10000000;
+        return Double.parseDouble(value) / 10000000.0;
     }
 
     private double calculateDistanceKm(double lat1,

@@ -43,6 +43,16 @@ public class Theme {
     @Column(name = "weather_fit", length = 200)
     private String weatherFit;
 
+    // 테마 기반 코스 생성용 데이터
+    @Column(name = "typical_route", columnDefinition = "TEXT")
+    private String typicalRoute;
+
+    @Column(name = "recommended_course", columnDefinition = "TEXT")
+    private String recommendedCourse;
+
+    @Column(name = "ai_search_context", columnDefinition = "TEXT")
+    private String aiSearchContext;
+
     @OneToMany(mappedBy = "theme")
     private List<Place> places = new ArrayList<>();
 
@@ -135,6 +145,30 @@ public class Theme {
 
     public void setWeatherFit(String weatherFit) {
         this.weatherFit = weatherFit;
+    }
+
+    public String getTypicalRoute() {
+        return typicalRoute;
+    }
+
+    public void setTypicalRoute(String typicalRoute) {
+        this.typicalRoute = typicalRoute;
+    }
+
+    public String getRecommendedCourse() {
+        return recommendedCourse;
+    }
+
+    public void setRecommendedCourse(String recommendedCourse) {
+        this.recommendedCourse = recommendedCourse;
+    }
+
+    public String getAiSearchContext() {
+        return aiSearchContext;
+    }
+
+    public void setAiSearchContext(String aiSearchContext) {
+        this.aiSearchContext = aiSearchContext;
     }
 
     public List<Place> getPlaces() {

@@ -27,6 +27,15 @@ public class TravelRequestDto {
 
     private String specialRequest;
 
+    // 혼잡도 기반 추천용 추가 입력값
+    private Boolean avoidCrowdedPlaces;
+
+    private String preferredTime;
+
+    private String travelStyle;
+
+    private Integer budgetLevel;
+
     public LocalDate getStartDate() {
         return startDate;
     }
@@ -81,5 +90,37 @@ public class TravelRequestDto {
 
     public void setSpecialRequest(String specialRequest) {
         this.specialRequest = specialRequest;
+    }
+
+    public Boolean getAvoidCrowdedPlaces() {
+        return avoidCrowdedPlaces;
+    }
+
+    public void setAvoidCrowdedPlaces(Boolean avoidCrowdedPlaces) {
+        this.avoidCrowdedPlaces = avoidCrowdedPlaces;
+    }
+
+    public String getPreferredTime() {
+        return preferredTime;
+    }
+
+    public void setPreferredTime(String preferredTime) {
+        this.preferredTime = preferredTime;
+    }
+
+    public String getTravelStyle() {
+        return travelStyle;
+    }
+
+    public void setTravelStyle(String travelStyle) {
+        this.travelStyle = travelStyle;
+    }
+
+    public Integer getBudgetLevel() {
+        return budgetLevel;
+    }
+
+    public void setBudgetLevel(Integer budgetLevel) {
+        this.budgetLevel = budgetLevel;
     }
 }

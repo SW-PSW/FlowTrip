@@ -103,48 +103,55 @@ public class NaverImageSearchService {
     }
     public String searchThumbnail(String placeName, String category, String address) {
 
-        String cleanPlaceName = cleanText(placeName);
-        String cleanCategory = cleanText(category);
+        try {
+            String cleanPlaceName = cleanText(placeName);
+            String cleanCategory = cleanText(category);
 
-        String query;
+            String query;
 
-        if (cleanCategory.contains("카페")) {
-            query = cleanPlaceName + " 카페 후기";
-        } else if (cleanCategory.contains("숙박")
-                || cleanCategory.contains("펜션")
-                || cleanCategory.contains("호텔")
-                || cleanCategory.contains("모텔")) {
-            query = cleanPlaceName + " 숙소 후기";
-        } else if (cleanCategory.contains("관광")
-                || cleanCategory.contains("문화")
-                || cleanCategory.contains("박물관")
-                || cleanCategory.contains("전시")) {
-            query = cleanPlaceName + " 방문 후기";
-        } else {
-            query = cleanPlaceName + " 맛집 후기";
-        }
+            if (cleanCategory.contains("카페")) {
+                query = cleanPlaceName + " 카페 후기";
+            } else if (cleanCategory.contains("숙박")
+                    || cleanCategory.contains("펜션")
+                    || cleanCategory.contains("호텔")
+                    || cleanCategory.contains("모텔")) {
+                query = cleanPlaceName + " 숙소 후기";
+            } else if (cleanCategory.contains("관광")
+                    || cleanCategory.contains("문화")
+                    || cleanCategory.contains("박물관")
+                    || cleanCategory.contains("전시")) {
+                query = cleanPlaceName + " 방문 후기";
+            } else {
+                query = cleanPlaceName + " 맛집 후기";
+            }
 
-        List<PlaceImageDto> images = searchImages(query, 5);
+            List<PlaceImageDto> images = searchImages(query, 5);
 
-        if (images == null || images.isEmpty()) {
+            if (images == null || images.isEmpty()) {
+                return null;
+            }
+
+            for (PlaceImageDto image : images) {
+                String thumbnail = image.getThumbnail();
+
+                if (thumbnail != null
+                        && !thumbnail.isBlank()
+                        && (thumbnail.contains(".jpg")
+                        || thumbnail.contains(".png")
+                        || thumbnail.contains(".jpeg")
+                        || thumbnail.contains("pstatic"))) {
+
+                    return thumbnail;
+                }
+            }
+
+            return null;
+
+        } catch (Exception e) {
+            System.out.println("네이버 이미지 검색 실패 - 썸네일 없음 처리");
+            System.out.println(e.getMessage());
             return null;
         }
-
-        for (PlaceImageDto image : images) {
-        	String thumbnail = image.getThumbnail();
-
-        	if (thumbnail != null
-        	        && !thumbnail.isBlank()
-        	        && (thumbnail.contains(".jpg")
-        	            || thumbnail.contains(".png")
-        	            || thumbnail.contains(".jpeg")
-        	            || thumbnail.contains("pstatic"))) {
-
-        	    return thumbnail;
-        	}
-        }
-
-        return null;
     }
 
     private String cleanText(String value) {
