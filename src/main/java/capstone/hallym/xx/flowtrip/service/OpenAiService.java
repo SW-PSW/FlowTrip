@@ -81,6 +81,8 @@ public class OpenAiService {
         sb.append("- 후보에 없는 장소나 테마를 만들지 마세요.\n");
         sb.append("- 특이사항을 반드시 반영하세요.\n");
         sb.append("- recommendedPlaceName은 반드시 1개만 작성하세요.\n");
+        sb.append("- [후보 장소]가 \"없음\"이면 recommendedPlaceName과 recommendedPlaceId는 반드시 빈 문자열로 작성하세요.\n");
+        sb.append("- 테마 설명(themeSummary)에 등장하는 장소명을 recommendedPlaceName으로 사용하지 마세요.\n");
         sb.append("- JSON 형식으로만 응답하세요.\n\n");
 
         sb.append("[사용자 정보]\n");

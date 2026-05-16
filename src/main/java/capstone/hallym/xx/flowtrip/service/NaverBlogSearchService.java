@@ -106,4 +106,5 @@ public class NaverBlogSearchService {
 
         return String.valueOf(value);
     }
+    
 }

@@ -3,6 +3,7 @@ package capstone.hallym.xx.flowtrip.service;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -27,6 +28,9 @@ public class NaverLocalSearchService {
     private String clientSecret;
 
     private final RestTemplate restTemplate = new RestTemplate();
+
+    private static final int NAVER_LOCAL_MAX_DISPLAY = 5;
+    private static final int NAVER_LOCAL_MAX_PAGE = 2;
 
     public String buildSearchBaseQuery(String regionName, String placeName) {
         String safeRegionName = nullSafe(regionName).trim();
@@ -55,19 +59,100 @@ public class NaverLocalSearchService {
         return searchLocal(baseQuery + " 근처 숙소", 10);
     }
 
-    private List<NearbyPlaceDto> searchLocal(String query, int display) {
+    public List<NearbyPlaceDto> searchPlacesByKeyword(String query) {
+        return searchLocal(query, 10);
+    }
+
+    public void applyDistanceAndSort(NearbyPlaceDto target, List<NearbyPlaceDto> places) {
+        if (target == null || places == null || places.isEmpty()) {
+            return;
+        }
+
+        applyDistanceAndSortByMapxy(target.getMapx(), target.getMapy(), places);
+    }
+
+    public void applyDistanceAndSortByMapxy(String targetMapx,
+                                            String targetMapy,
+                                            List<NearbyPlaceDto> places) {
+        if (isBlank(targetMapx) || isBlank(targetMapy) || places == null) {
+            return;
+        }
+
+        double targetLng = parseCoord(targetMapx);
+        double targetLat = parseCoord(targetMapy);
+
+        for (NearbyPlaceDto place : places) {
+            if (isBlank(place.getMapx()) || isBlank(place.getMapy())) {
+                place.setDistanceKm(9999);
+                continue;
+            }
+
+            double placeLng = parseCoord(place.getMapx());
+            double placeLat = parseCoord(place.getMapy());
+
+            double distance = calculateDistanceKm(
+                    targetLat,
+                    targetLng,
+                    placeLat,
+                    placeLng
+            );
+
+            place.setDistanceKm(distance);
+        }
+
+        places.sort(Comparator.comparingDouble(NearbyPlaceDto::getDistanceKm));
+    }
+
+    private List<NearbyPlaceDto> searchLocal(String query, int totalDisplay) {
+        List<NearbyPlaceDto> result = new ArrayList<>();
+
+        int start = 1;
+        int pageCount = 0;
+
+        while (result.size() < totalDisplay && pageCount < NAVER_LOCAL_MAX_PAGE) {
+            int remain = totalDisplay - result.size();
+            int display = Math.min(NAVER_LOCAL_MAX_DISPLAY, remain);
+
+            List<NearbyPlaceDto> pageResult = searchLocalPage(query, display, start);
+
+            if (pageResult.isEmpty()) {
+                break;
+            }
+
+            for (NearbyPlaceDto place : pageResult) {
+                if (!containsSamePlace(result, place)) {
+                    result.add(place);
+                }
+
+                if (result.size() >= totalDisplay) {
+                    break;
+                }
+            }
+
+            start += display;
+            pageCount++;
+
+            if (pageResult.size() < display) {
+                break;
+            }
+        }
+
+        return result;
+    }
+
+    private List<NearbyPlaceDto> searchLocalPage(String query, int display, int start) {
         String encodedQuery = UriUtils.encode(query, StandardCharsets.UTF_8);
 
         String url = "https://openapi.naver.com/v1/search/local.json"
                 + "?query=" + encodedQuery
                 + "&display=" + display
-                + "&start=1"
+                + "&start=" + start
                 + "&sort=sim";
 
         System.out.println("===== NAVER LOCAL SEARCH QUERY =====");
-        System.out.println(query);
-        System.out.println("===== NAVER LOCAL SEARCH URL =====");
-        System.out.println(url);
+        System.out.println(query + " / start=" + start + " / display=" + display);
+
+        List<NearbyPlaceDto> result = new ArrayList<>();
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("X-Naver-Client-Id", clientId);
@@ -75,19 +160,24 @@ public class NaverLocalSearchService {
 
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
-        ResponseEntity<Map> response = restTemplate.exchange(
-                URI.create(url),
-                HttpMethod.GET,
-                request,
-                Map.class
-        );
+        ResponseEntity<Map> response;
+
+        try {
+            response = restTemplate.exchange(
+                    URI.create(url),
+                    HttpMethod.GET,
+                    request,
+                    Map.class
+            );
+        } catch (Exception e) {
+            System.out.println("네이버 지역 검색 실패: " + query);
+            System.out.println(e.getMessage());
+            return result;
+        }
 
         Map responseBody = response.getBody();
 
-        List<NearbyPlaceDto> result = new ArrayList<>();
-
         if (responseBody == null) {
-            System.out.println("네이버 지역 검색 응답이 비어 있습니다.");
             return result;
         }
 
@@ -95,7 +185,6 @@ public class NaverLocalSearchService {
                 (List<Map<String, Object>>) responseBody.get("items");
 
         if (items == null || items.isEmpty()) {
-            System.out.println("네이버 지역 검색 결과 없음: " + query);
             return result;
         }
 
@@ -109,7 +198,7 @@ public class NaverLocalSearchService {
             String mapx = asString(item.get("mapx"));
             String mapy = asString(item.get("mapy"));
 
-            NearbyPlaceDto dto = new NearbyPlaceDto(
+            result.add(new NearbyPlaceDto(
                     title,
                     category,
                     address,
@@ -118,20 +207,63 @@ public class NaverLocalSearchService {
                     link,
                     mapx,
                     mapy
-            );
-
-            result.add(dto);
-
-            System.out.println("----- NAVER RESULT ITEM -----");
-            System.out.println("title = " + title);
-            System.out.println("category = " + category);
-            System.out.println("address = " + address);
-            System.out.println("roadAddress = " + roadAddress);
-            System.out.println("mapx = " + mapx);
-            System.out.println("mapy = " + mapy);
+            ));
         }
 
         return result;
+    }
+
+    private boolean containsSamePlace(List<NearbyPlaceDto> places, NearbyPlaceDto target) {
+        for (NearbyPlaceDto place : places) {
+            boolean sameTitle = safeEquals(place.getTitle(), target.getTitle());
+
+            boolean sameAddress =
+                    safeEquals(place.getAddress(), target.getAddress())
+                            || safeEquals(place.getRoadAddress(), target.getRoadAddress());
+
+            boolean sameMap =
+                    safeEquals(place.getMapx(), target.getMapx())
+                            && safeEquals(place.getMapy(), target.getMapy());
+
+            if ((sameTitle && sameAddress) || sameMap) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean safeEquals(String a, String b) {
+        if (a == null || b == null) {
+            return false;
+        }
+
+        return a.trim().equals(b.trim());
+    }
+
+    private double parseCoord(String value) {
+        return Double.parseDouble(value) / 10000000;
+    }
+
+    private double calculateDistanceKm(double lat1,
+                                       double lon1,
+                                       double lat2,
+                                       double lon2) {
+        final double earthRadiusKm = 6371.0;
+
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        double a =
+                Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                        + Math.cos(Math.toRadians(lat1))
+                        * Math.cos(Math.toRadians(lat2))
+                        * Math.sin(dLon / 2)
+                        * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return earthRadiusKm * c;
     }
 
     private String cleanHtml(String value) {
@@ -152,5 +284,9 @@ public class NaverLocalSearchService {
 
     private String nullSafe(String value) {
         return value == null ? "" : value;
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

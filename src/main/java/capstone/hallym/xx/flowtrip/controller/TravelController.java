@@ -1,6 +1,5 @@
 package capstone.hallym.xx.flowtrip.controller;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -13,13 +12,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import capstone.hallym.xx.flowtrip.dto.NearbyPlaceDto;
-import capstone.hallym.xx.flowtrip.dto.NearbyPlaceWithReviewsDto;
 import capstone.hallym.xx.flowtrip.dto.RecommendationCandidatesDto;
 import capstone.hallym.xx.flowtrip.dto.RecommendationResultDto;
 import capstone.hallym.xx.flowtrip.dto.TravelRequestDto;
 import capstone.hallym.xx.flowtrip.entity.Place;
 import capstone.hallym.xx.flowtrip.repository.PlaceRepository;
-import capstone.hallym.xx.flowtrip.service.NaverBlogSearchService;
 import capstone.hallym.xx.flowtrip.service.NaverImageSearchService;
 import capstone.hallym.xx.flowtrip.service.NaverLocalSearchService;
 import capstone.hallym.xx.flowtrip.service.OpenAiService;
@@ -34,10 +31,9 @@ public class TravelController {
     private final RecommendationCandidateService recommendationCandidateService;
     private final OpenAiService openAiService;
     private final NaverLocalSearchService naverLocalSearchService;
-    private final NaverBlogSearchService naverBlogSearchService;
-    private final NaverImageSearchService naverImageSearchService;
     private final PlaceRepository placeRepository;
     private final ObjectMapper objectMapper;
+    private final NaverImageSearchService naverImageSearchService;
 
     @Value("${naver.map.client-id}")
     private String naverMapClientId;
@@ -46,18 +42,15 @@ public class TravelController {
                             RecommendationCandidateService recommendationCandidateService,
                             OpenAiService openAiService,
                             NaverLocalSearchService naverLocalSearchService,
-                            NaverBlogSearchService naverBlogSearchService,
-                            NaverImageSearchService naverImageSearchService,
-                            PlaceRepository placeRepository) {
+                            PlaceRepository placeRepository, NaverImageSearchService naverImageSearchService) {
 
         this.themeService = themeService;
         this.recommendationCandidateService = recommendationCandidateService;
         this.openAiService = openAiService;
         this.naverLocalSearchService = naverLocalSearchService;
-        this.naverBlogSearchService = naverBlogSearchService;
-        this.naverImageSearchService = naverImageSearchService;
         this.placeRepository = placeRepository;
         this.objectMapper = new ObjectMapper();
+        this.naverImageSearchService = naverImageSearchService;
     }
 
     @GetMapping("/")
@@ -89,16 +82,12 @@ public class TravelController {
         System.out.println("===== GPT RESPONSE =====");
         System.out.println(gptResult);
 
-        RecommendationResultDto recommendationResult =
-                parseGptResult(gptResult);
+        RecommendationResultDto recommendationResult = parseGptResult(gptResult);
 
         List<NearbyPlaceDto> targetPlaces = List.of();
         List<NearbyPlaceDto> restaurants = List.of();
         List<NearbyPlaceDto> cafes = List.of();
         List<NearbyPlaceDto> hotels = List.of();
-
-        List<NearbyPlaceWithReviewsDto> restaurantReviews =
-                new ArrayList<>();
 
         String naverSearchBaseQuery = "";
 
@@ -107,26 +96,20 @@ public class TravelController {
                 && !recommendationResult.getRecommendedPlaceId().isBlank()) {
 
             try {
-                Long placeId =
-                        Long.parseLong(recommendationResult.getRecommendedPlaceId());
+                Long placeId = Long.parseLong(recommendationResult.getRecommendedPlaceId());
 
-                Place selectedPlace =
-                        placeRepository.findById(placeId).orElse(null);
+                Place selectedPlace = placeRepository.findById(placeId).orElse(null);
 
                 if (selectedPlace != null) {
                     String regionName = "";
                     String placeName = selectedPlace.getPlaceName();
 
                     if (selectedPlace.getRegion() != null) {
-                        regionName =
-                                selectedPlace.getRegion().getRegionName();
+                        regionName = selectedPlace.getRegion().getRegionName();
                     }
 
                     naverSearchBaseQuery =
-                            naverLocalSearchService.buildSearchBaseQuery(
-                                    regionName,
-                                    placeName
-                            );
+                            naverLocalSearchService.buildSearchBaseQuery(regionName, placeName);
                 }
 
             } catch (Exception e) {
@@ -135,7 +118,7 @@ public class TravelController {
             }
         }
 
-        if (naverSearchBaseQuery.isBlank()
+        /*if (naverSearchBaseQuery.isBlank()
                 && recommendationResult != null
                 && recommendationResult.getRecommendedPlaceName() != null) {
 
@@ -144,121 +127,99 @@ public class TravelController {
                             "",
                             recommendationResult.getRecommendedPlaceName()
                     );
-        }
+        }*/
 
         if (!naverSearchBaseQuery.isBlank()) {
-            System.out.println("네이버 검색 기준어 = "
-                    + naverSearchBaseQuery);
+            System.out.println("네이버 검색 기준어 = " + naverSearchBaseQuery);
 
             targetPlaces =
-                    naverLocalSearchService.searchTargetPlace(
-                            naverSearchBaseQuery
-                    );
+                    naverLocalSearchService.searchTargetPlace(naverSearchBaseQuery);
 
             restaurants =
-                    naverLocalSearchService.searchRestaurantsNear(
-                            naverSearchBaseQuery
-                    );
+                    naverLocalSearchService.searchRestaurantsNear(naverSearchBaseQuery);
 
             cafes =
-                    naverLocalSearchService.searchCafesNear(
-                            naverSearchBaseQuery
-                    );
+                    naverLocalSearchService.searchCafesNear(naverSearchBaseQuery);
 
             hotels =
-                    naverLocalSearchService.searchHotelsNear(
-                            naverSearchBaseQuery
-                    );
-
-            System.out.println("추천 장소 검색 결과 개수 = "
-                    + targetPlaces.size());
-
-            System.out.println("식당 검색 결과 개수 = "
-                    + restaurants.size());
-
-            System.out.println("카페 검색 결과 개수 = "
-                    + cafes.size());
-
-            System.out.println("숙소 검색 결과 개수 = "
-                    + hotels.size());
+                    naverLocalSearchService.searchHotelsNear(naverSearchBaseQuery);
+           
+            
 
             if (!targetPlaces.isEmpty()) {
                 NearbyPlaceDto target = targetPlaces.get(0);
 
-                System.out.println(
-                        "=== 최종 추천 장소 네이버 검색 결과 ===");
+                naverLocalSearchService.applyDistanceAndSort(target, restaurants);
+                naverLocalSearchService.applyDistanceAndSort(target, cafes);
+                naverLocalSearchService.applyDistanceAndSort(target, hotels);
 
-                System.out.println("title = "
-                        + target.getTitle());
-
-                System.out.println("roadAddress = "
-                        + target.getRoadAddress());
-
-                System.out.println("address = "
-                        + target.getAddress());
-
-                System.out.println("mapx = "
-                        + target.getMapx());
-
-                System.out.println("mapy = "
-                        + target.getMapy());
+                System.out.println("=== 최종 추천 장소 네이버 검색 결과 ===");
+                System.out.println("title = " + target.getTitle());
+                System.out.println("roadAddress = " + target.getRoadAddress());
+                System.out.println("address = " + target.getAddress());
+                System.out.println("mapx = " + target.getMapx());
+                System.out.println("mapy = " + target.getMapy());
             }
 
-            for (NearbyPlaceDto restaurant : restaurants) {
-                System.out.println("===== 식당 상세 보조 정보 검색 시작 =====");
-                System.out.println("업체명 = " + restaurant.getTitle());
-
-                restaurantReviews.add(
-                        new NearbyPlaceWithReviewsDto(
-                                restaurant,
-                                naverBlogSearchService.searchReviews(
-                                        restaurant.getTitle()
-                                ),
-                                naverImageSearchService.searchPlaceImages(
-                                        restaurant.getTitle()
-                                )
-                        )
-                );
-            }
+            System.out.println("추천 장소 검색 결과 개수 = " + targetPlaces.size());
+            System.out.println("식당 검색 결과 개수 = " + restaurants.size());
+            System.out.println("카페 검색 결과 개수 = " + cafes.size());
+            System.out.println("숙소 검색 결과 개수 = " + hotels.size());
         }
+        fillImages(targetPlaces);
+        fillImages(restaurants);
+        fillImages(cafes);
+        fillImages(hotels);
 
         model.addAttribute("request", dto);
         model.addAttribute("gptResult", gptResult);
         model.addAttribute("recommendationResult", recommendationResult);
 
-        model.addAttribute(
-                "themeCandidates",
-                candidates.getThemeCandidatesText()
-        );
-
-        model.addAttribute(
-                "placeCandidates",
-                candidates.getPlaceCandidatesText()
-        );
+        model.addAttribute("themeCandidates", candidates.getThemeCandidatesText());
+        model.addAttribute("placeCandidates", candidates.getPlaceCandidatesText());
 
         model.addAttribute("targetPlaces", targetPlaces);
         model.addAttribute("restaurants", restaurants);
         model.addAttribute("cafes", cafes);
         model.addAttribute("hotels", hotels);
 
-        model.addAttribute(
-                "restaurantReviews",
-                restaurantReviews
-        );
-
-        model.addAttribute(
-                "naverSearchBaseQuery",
-                naverSearchBaseQuery
-        );
-
-        model.addAttribute(
-                "naverMapClientId",
-                naverMapClientId
-        );
+        model.addAttribute("naverSearchBaseQuery", naverSearchBaseQuery);
+        model.addAttribute("naverMapClientId", naverMapClientId);
 
         return "travel-result";
     }
 
+    private void fillImages(List<NearbyPlaceDto> places) {
+
+        if (places == null) {
+            return;
+        }
+
+        for (NearbyPlaceDto place : places) {
+
+            String cleanTitle = place.getTitle()
+                    .replaceAll("<[^>]*>", "")
+                    .replace("&amp;", "&");
+
+            String address = place.getRoadAddress();
+
+            if (address == null || address.isBlank()) {
+                address = place.getAddress();
+            }
+
+            String imageUrl =
+                    naverImageSearchService.searchThumbnail(
+                            cleanTitle,
+                            place.getCategory(),
+                            address
+                    );
+
+            System.out.println("대표 이미지: " + cleanTitle + " -> " + imageUrl);
+
+            place.setImageUrl(imageUrl);
+        }
+    }
+    
     private RecommendationResultDto parseGptResult(String gptResult) {
         try {
             String cleanedJson = gptResult
@@ -274,7 +235,6 @@ public class TravelController {
         } catch (Exception e) {
             System.out.println("GPT JSON 파싱 실패");
             System.out.println(e.getMessage());
-
             return null;
         }
     }

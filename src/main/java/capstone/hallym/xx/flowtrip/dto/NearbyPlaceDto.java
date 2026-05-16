@@ -10,6 +10,8 @@ public class NearbyPlaceDto {
     private String link;
     private String mapx;
     private String mapy;
+    private double distanceKm;
+    private String imageUrl;
 
     public NearbyPlaceDto() {
     }
@@ -56,5 +58,20 @@ public class NearbyPlaceDto {
 
     public String getMapy() {
         return mapy;
+    }
+
+    public double getDistanceKm() {
+        return distanceKm;
+    }
+
+    public void setDistanceKm(double distanceKm) {
+        this.distanceKm = distanceKm;
+    }
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 }

@@ -1,6 +1,7 @@
 package capstone.hallym.xx.flowtrip.service;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import capstone.hallym.xx.flowtrip.dto.PlaceImageDto;
 
@@ -96,5 +100,78 @@ public class NaverImageSearchService {
         }
 
         return String.valueOf(value);
+    }
+    public String searchThumbnail(String placeName, String category, String address) {
+
+        String cleanPlaceName = cleanText(placeName);
+        String cleanCategory = cleanText(category);
+
+        String query;
+
+        if (cleanCategory.contains("카페")) {
+            query = cleanPlaceName + " 카페 후기";
+        } else if (cleanCategory.contains("숙박")
+                || cleanCategory.contains("펜션")
+                || cleanCategory.contains("호텔")
+                || cleanCategory.contains("모텔")) {
+            query = cleanPlaceName + " 숙소 후기";
+        } else if (cleanCategory.contains("관광")
+                || cleanCategory.contains("문화")
+                || cleanCategory.contains("박물관")
+                || cleanCategory.contains("전시")) {
+            query = cleanPlaceName + " 방문 후기";
+        } else {
+            query = cleanPlaceName + " 맛집 후기";
+        }
+
+        List<PlaceImageDto> images = searchImages(query, 5);
+
+        if (images == null || images.isEmpty()) {
+            return null;
+        }
+
+        for (PlaceImageDto image : images) {
+        	String thumbnail = image.getThumbnail();
+
+        	if (thumbnail != null
+        	        && !thumbnail.isBlank()
+        	        && (thumbnail.contains(".jpg")
+        	            || thumbnail.contains(".png")
+        	            || thumbnail.contains(".jpeg")
+        	            || thumbnail.contains("pstatic"))) {
+
+        	    return thumbnail;
+        	}
+        }
+
+        return null;
+    }
+
+    private String cleanText(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replaceAll("<[^>]*>", "")
+                .replace("&amp;", "&")
+                .replaceAll("\\s+", " ")
+                .trim();
+    }
+
+    private boolean isBadImage(String text) {
+        String[] badWords = {
+                "코로나", "covid", "독감", "예방접종", "지원금", "어르신",
+                "카드뉴스", "포스터", "배너", "공지", "안내문", "홍보",
+                "로고", "지도", "약도", "표", "테이블", "메뉴판"
+        };
+
+        for (String badWord : badWords) {
+            if (text.contains(badWord)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

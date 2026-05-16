@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
 
 <head>
     <meta charset="UTF-8">
@@ -11,210 +11,622 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --glass-dark: rgba(12, 18, 18, 0.48);
+            --glass-deep: rgba(7, 13, 14, 0.58);
+            --glass-light: rgba(255, 255, 255, 0.06);
+            --line: rgba(255, 255, 255, 0.14);
+            --line-strong: rgba(255, 255, 255, 0.22);
+            --text: #f8fafc;
+            --muted: rgba(248, 250, 252, 0.68);
+            --dim: rgba(248, 250, 252, 0.42);
+            --gold: #f6c65b;
+            --gold-soft: rgba(246, 198, 91, 0.2);
+            --danger: #ff6b6b;
+            --green: #9be7c7;
+        }
+
         body {
             margin: 0;
             font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
-            background: #f3f7fb;
-            color: #0f172a;
+            color: var(--text);
+            min-height: 100vh;
+            background:
+                    linear-gradient(90deg, rgba(3, 9, 11, 0.75), rgba(3, 9, 11, 0.22), rgba(3, 9, 11, 0.45)),
+                    url("/images/main-bg.jpg") center / cover no-repeat fixed;
+            overflow-x: hidden;
         }
 
-        .page {
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background:
+                    radial-gradient(circle at 74% 18%, rgba(255, 215, 130, 0.15), transparent 34%),
+                    radial-gradient(circle at 18% 18%, rgba(67, 154, 181, 0.18), transparent 36%),
+                    rgba(0, 0, 0, 0.16);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        button, input {
+            font-family: inherit;
+        }
+
+        .app {
             width: 100%;
             min-height: 100vh;
-            padding: 24px;
-        }
-
-        .top-nav {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
+            grid-template-columns: 254px 1fr;
         }
 
-        .top-button {
-            height: 72px;
-            border: none;
-            border-radius: 20px;
-            background: white;
-            color: #ef4444;
-            font-size: 20px;
-            font-weight: 900;
-            cursor: pointer;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
-            transition: 0.15s;
-        }
-
-        .top-button:hover {
-            transform: translateY(-2px);
-            background: #fff5f5;
-        }
-
-        .main-layout {
-            display: grid;
-            grid-template-columns: 7fr 3fr;
-            gap: 24px;
-            min-height: calc(100vh - 120px);
-        }
-
-        .left-zone {
-            display: grid;
-            grid-template-columns: 86px 1fr;
-            gap: 18px;
-            min-height: 760px;
-        }
-
-        .category-sidebar {
-            background: white;
-            border-radius: 22px;
-            padding: 18px 12px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+        .sidebar {
+            min-height: 100vh;
+            padding: 28px 0 28px;
+            background: rgba(7, 18, 22, 0.50);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            box-shadow: 24px 0 60px rgba(0, 0, 0, 0.25);
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 16px;
         }
 
-        .category-button {
-            width: 56px;
-            height: 56px;
-            border: none;
-            border-radius: 16px;
-            background: #fef3c7;
-            color: #92400e;
-            font-size: 13px;
-            font-weight: 900;
-            cursor: pointer;
-            transition: 0.15s;
-        }
-
-        .category-button.active {
-            background: #facc15;
-            color: #422006;
-            box-shadow: 0 8px 18px rgba(250, 204, 21, 0.35);
-        }
-
-        .category-button:hover {
-            transform: translateY(-2px);
-        }
-
-        .place-panel {
-            background: white;
-            border-radius: 22px;
-            padding: 22px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
-            min-height: 760px;
-        }
-
-        .place-panel-header {
+        .brand {
+            padding: 0 30px 32px;
             display: flex;
-            justify-content: space-between;
-            align-items: end;
-            gap: 12px;
-            margin-bottom: 18px;
+            align-items: center;
+            gap: 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
         }
 
-        .place-panel-header h2 {
-            margin: 0;
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.12);
+            color: #e7f7ff;
             font-size: 24px;
         }
 
-        .place-panel-header p {
-            margin: 6px 0 0;
-            color: #64748b;
+        .brand-title {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: -0.7px;
+        }
+
+        .brand-sub {
+            margin-top: 3px;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .side-menu {
+            padding: 22px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .side-item {
+            position: relative;
+            height: 74px;
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            color: var(--dim);
+            font-size: 17px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: 0.18s ease;
+        }
+
+        .side-item.active {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .side-item.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--gold);
+            box-shadow: 0 0 18px rgba(246, 198, 91, 0.7);
+        }
+
+        .side-item.locked {
+            opacity: 0.62;
+        }
+
+        .side-icon {
+            width: 28px;
+            text-align: center;
+            font-size: 25px;
+        }
+
+        .lock {
+            margin-left: auto;
+            font-size: 16px;
+            opacity: 0.75;
+        }
+
+        .sidebar-bottom {
+            margin-top: auto;
+            padding: 0 28px;
+        }
+
+        .weather-card {
+            width: 100%;
+            min-height: 82px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 15px 18px;
+            margin-bottom: 36px;
+        }
+
+        .weather-icon {
+            font-size: 35px;
+            color: #ffd55f;
+        }
+
+        .weather-main {
+            font-size: 17px;
+            font-weight: 900;
+        }
+
+        .weather-sub {
+            margin-top: 4px;
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .login-area {
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 26px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--text);
+            font-weight: 700;
+        }
+
+        .login-avatar {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.16);
+            font-size: 22px;
+        }
+
+        .content {
+            padding: 40px 54px 40px;
+            min-width: 0;
+        }
+
+        .top-nav {
+            display: flex;
+            justify-content: flex-end;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .top-card {
+            width: 156px;
+            height: 156px;
+            border-radius: 26px;
+            border: 1px solid rgba(255, 255, 255, 0.13);
+            background: rgba(18, 22, 23, 0.42);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.18);
+            transition: 0.18s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .top-card.active {
+            border-color: rgba(246, 198, 91, 0.95);
+            box-shadow:
+                    inset 0 0 0 1px rgba(246, 198, 91, 0.14),
+                    0 0 34px rgba(246, 198, 91, 0.15);
+        }
+
+        .top-card.disabled {
+            opacity: 0.52;
+            cursor: not-allowed;
+        }
+
+        .top-card:hover:not(.disabled) {
+            transform: translateY(-4px);
+            background: rgba(32, 36, 37, 0.62);
+        }
+
+        .top-icon {
+            font-size: 32px;
+            color: var(--gold);
+        }
+
+        .top-card.active .top-icon {
+            color: #ffffff;
+        }
+
+        .top-title {
+            font-size: 16px;
+            font-weight: 900;
+        }
+
+        .top-sub {
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: minmax(520px, 1.05fr) minmax(460px, 0.95fr);
+            gap: 34px;
+            align-items: stretch;
+        }
+
+        .glass-panel {
+            background: var(--glass-dark);
+            border: 1px solid var(--line);
+            border-radius: 30px;
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.34);
+        }
+
+        .left-panel {
+            padding: 30px 30px 22px;
+            min-height: 760px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .panel-title {
+            margin: 0;
+            font-size: 25px;
+            font-weight: 900;
+            letter-spacing: -0.6px;
+        }
+
+        .panel-desc {
+            margin: 8px 0 0;
+            color: var(--muted);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .filter-btn {
+            min-width: 92px;
+            height: 44px;
+            border-radius: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+            color: var(--text);
+            cursor: pointer;
             font-size: 14px;
+            font-weight: 700;
+        }
+
+        .category-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .category-button {
+            height: 46px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--muted);
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.16s ease;
+        }
+
+        .category-button.active {
+            color: #1e1606;
+            background: linear-gradient(135deg, #f8d982, #dca73c);
+            border-color: rgba(246, 198, 91, 0.95);
+            box-shadow: 0 10px 24px rgba(246, 198, 91, 0.18);
+        }
+
+        .custom-search-box {
+            display: grid;
+            grid-template-columns: 1fr 130px;
+            gap: 12px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+        }
+
+        .search-input-wrap {
+            height: 54px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.06);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 18px;
+        }
+
+        .search-input-wrap span {
+            font-size: 21px;
+            color: #e8f4ff;
+            opacity: 0.92;
+        }
+
+        .search-input-wrap input {
+            width: 100%;
+            border: none;
+            outline: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .search-input-wrap input::placeholder {
+            color: rgba(255, 255, 255, 0.44);
+        }
+
+        .add-btn {
+            height: 54px;
+            border-radius: 999px;
+            border: 1px solid rgba(246, 198, 91, 0.62);
+            background: rgba(246, 198, 91, 0.12);
+            color: var(--gold);
+            font-size: 15px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.16s ease;
+        }
+
+        .add-btn:hover {
+            background: rgba(246, 198, 91, 0.2);
+        }
+
+        .custom-results {
+            margin: 18px 0 4px;
+            padding: 16px;
+            border-radius: 20px;
+            background: rgba(246, 198, 91, 0.1);
+            border: 1px solid rgba(246, 198, 91, 0.22);
+        }
+
+        .custom-results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .custom-results-title {
+            font-size: 15px;
+            font-weight: 900;
+            color: var(--gold);
         }
 
         .place-list {
-            height: 660px;
+            height: 570px;
             overflow-y: auto;
             padding-right: 12px;
+            margin-top: 14px;
         }
 
         .place-list::-webkit-scrollbar {
-            width: 10px;
+            width: 8px;
         }
 
         .place-list::-webkit-scrollbar-track {
-            background: #ffedd5;
+            background: rgba(255, 255, 255, 0.09);
             border-radius: 999px;
         }
 
         .place-list::-webkit-scrollbar-thumb {
-            background: #fb923c;
+            background: rgba(255, 255, 255, 0.38);
             border-radius: 999px;
         }
 
         .place-card {
-            border: 1px solid #dcfce7;
-            background: #f0fdf4;
-            border-radius: 20px;
-            padding: 18px;
-            margin-bottom: 18px;
+            display: grid;
+            grid-template-columns: 170px 1fr 86px;
+            gap: 22px;
+            padding: 18px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.13);
             cursor: pointer;
-            transition: 0.15s;
+            transition: 0.16s ease;
         }
 
         .place-card:hover {
-            background: #ecfdf5;
-            border-color: #86efac;
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 18px;
+            padding-left: 12px;
+            padding-right: 12px;
         }
 
-        .place-card strong {
+		.place-thumb {
+		    width: 170px;
+		    height: 140px;
+		    border-radius: 22px;
+		    overflow: hidden;
+
+		    background:
+		        linear-gradient(
+		            135deg,
+		            rgba(255,255,255,0.82),
+		            rgba(255,255,255,0.44)
+		        );
+
+		    display: flex;
+		    align-items: center;
+		    justify-content: center;
+
+		    color: rgba(255,255,255,0.75);
+		    font-size: 42px;
+
+		    flex-shrink: 0;
+		}
+
+		.place-thumb img {
+			width: 100%;
+			    height: 100%;
+			    object-fit: cover;
+			    border-radius: 22px;
+			    display: block;
+		}
+
+		.recommend-thumb {
+		    overflow: hidden;
+		}
+
+		.recommend-thumb img {
+		    width: 100%;
+		    height: 100%;
+		    object-fit: cover;
+		    display: block;
+		}
+
+        .place-info {
+            min-width: 0;
+            padding-top: 8px;
+        }
+
+        .place-name {
             display: block;
+            margin-bottom: 10px;
+            color: var(--text);
             font-size: 20px;
-            margin-bottom: 8px;
-            color: #064e3b;
+            font-weight: 900;
+            letter-spacing: -0.4px;
         }
 
-        .place-card p {
-            margin: 5px 0;
-            color: #475569;
+        .place-meta,
+        .place-address,
+        .place-time {
+            margin: 8px 0;
+            color: var(--muted);
             font-size: 14px;
-            line-height: 1.5;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .place-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 10px;
+            padding-top: 9px;
+        }
+
+        .distance-text {
+            margin: 0 0 9px;
+            color: var(--gold);
+            font-weight: 900;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        .mini-btn {
+            width: 84px;
+            height: 38px;
+            border-radius: 11px;
+            border: 1px solid rgba(246, 198, 91, 0.42);
+            background: rgba(255, 255, 255, 0.07);
+            color: var(--text);
+            font-size: 13px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.15s ease;
+        }
+
+        .mini-btn.primary {
+            color: var(--gold);
+        }
+
+        .mini-btn:hover {
+            background: rgba(246, 198, 91, 0.14);
+        }
+
+        .dynamic-detail-area {
+            grid-column: 1 / -1;
+            cursor: default;
         }
 
         .image-row {
             display: flex;
-            gap: 8px;
-            margin: 12px 0;
+            gap: 10px;
+            margin: 14px 0;
             overflow-x: auto;
         }
 
         .place-image {
-            width: 120px;
+            width: 132px;
             height: 92px;
             object-fit: cover;
             border-radius: 14px;
-            border: 1px solid #bbf7d0;
-            background: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.18);
             flex-shrink: 0;
         }
 
         .review-box {
             margin-top: 14px;
-            padding-top: 12px;
-            border-top: 1px solid #bbf7d0;
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
         .review-title {
-            font-size: 14px;
+            font-size: 15px;
             font-weight: 900;
-            color: #065f46;
-            margin-bottom: 8px;
+            color: var(--gold);
+            margin-bottom: 10px;
         }
 
         .review-item {
             margin-top: 10px;
-            padding: 10px;
-            background: white;
+            padding: 12px;
             border-radius: 14px;
-            border: 1px solid #d1fae5;
+            background: rgba(0, 0, 0, 0.16);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .review-item a {
             display: block;
-            color: #2563eb;
+            color: #ffffff;
             font-size: 14px;
             font-weight: 800;
             text-decoration: none;
@@ -222,18 +634,14 @@
             margin-bottom: 6px;
         }
 
-        .review-item a:hover {
-            text-decoration: underline;
-        }
-
         .review-desc {
-            color: #475569;
+            color: var(--muted);
             font-size: 13px;
-            line-height: 1.45;
+            line-height: 1.55;
         }
 
         .review-meta {
-            color: #94a3b8;
+            color: var(--dim);
             font-size: 12px;
             margin-top: 6px;
         }
@@ -241,111 +649,242 @@
         .right-zone {
             display: flex;
             flex-direction: column;
-            gap: 18px;
-            min-height: 760px;
-        }
-
-        .map-card,
-        .recommend-card {
-            background: white;
-            border-radius: 22px;
-            padding: 18px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            gap: 20px;
         }
 
         .map-card {
-            height: 390px;
+            padding: 26px;
+            height: 470px;
+        }
+
+        .section-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+
+        .outline-btn {
+            height: 40px;
+            padding: 0 16px;
+            border-radius: 11px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
         }
 
         #map {
             width: 100%;
-            height: 100%;
-            border-radius: 18px;
+            height: calc(100% - 55px);
+            border-radius: 20px;
             overflow: hidden;
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .recommend-card {
-            flex: 1;
-            overflow-y: auto;
+            padding: 28px;
+            min-height: 336px;
         }
 
-        .recommend-card h2 {
-            margin: 0 0 14px;
-            color: #1d4ed8;
+        .recommend-main {
+            display: grid;
+            grid-template-columns: 126px minmax(0, 1fr) auto;
+            gap: 22px;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+		.recommend-name,
+		.recommend-address {
+		    overflow: hidden;
+		    text-overflow: ellipsis;
+		    white-space: nowrap;
+		}
+
+        .recommend-thumb {
+            width: 126px;
+            height: 98px;
+            border-radius: 14px;
+            background:
+                    linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.44));
+            display: grid;
+            place-items: center;
+            font-size: 34px;
+            color: rgba(255, 255, 255, 0.75);
         }
 
-        .info-block {
-            margin-top: 16px;
+        .recommend-name {
+            margin: 0 0 10px;
+            font-size: 24px;
+            font-weight: 950;
+            letter-spacing: -0.5px;
+        }
+
+        .recommend-address {
+            margin: 0;
+            color: var(--muted);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .recommend-distance {
+            color: var(--gold);
+            font-size: 15px;
+            font-weight: 950;
+            white-space: nowrap;
+        }
+
+        .info-table {
+            border-top: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .info-row {
+            display: grid;
+            grid-template-columns: 145px 1fr;
+            gap: 12px;
+            min-height: 56px;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 12px 0;
         }
 
         .info-label {
-            font-size: 13px;
-            color: #64748b;
-            font-weight: 800;
-            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 900;
+        }
+
+        .info-label .badge-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid rgba(246, 198, 91, 0.48);
+            display: grid;
+            place-items: center;
+            color: var(--gold);
+            font-size: 15px;
         }
 
         .info-value {
-            color: #0f172a;
+            color: var(--muted);
             font-size: 15px;
-            line-height: 1.65;
             font-weight: 600;
+            line-height: 1.65;
             word-break: keep-all;
         }
 
         .hidden {
-            display: none;
+            display: none !important;
+        }
+
+        .close-button {
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-weight: 800;
+            cursor: pointer;
         }
 
         .debug-card {
-            margin-top: 24px;
-            background: white;
-            border-radius: 22px;
-            padding: 22px;
-            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+            margin-top: 26px;
+            padding: 24px;
+        }
+
+        .debug-card h3 {
+            margin: 0 0 14px;
         }
 
         pre {
             white-space: pre-wrap;
             word-break: break-word;
-            background: #0f172a;
-            color: #e2e8f0;
-            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.35);
+            color: rgba(255, 255, 255, 0.76);
+            border-radius: 18px;
             padding: 18px;
-            max-height: 360px;
+            max-height: 280px;
             overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        @media (max-width: 1200px) {
-            .main-layout {
+        @media (max-width: 1280px) {
+            .app {
+                grid-template-columns: 220px 1fr;
+            }
+
+            .content {
+                padding: 30px;
+            }
+
+            .main-grid {
                 grid-template-columns: 1fr;
             }
 
-            .right-zone {
-                min-height: auto;
+            .top-nav {
+                justify-content: flex-start;
+                flex-wrap: wrap;
             }
 
             .map-card {
-                height: 460px;
+                height: 420px;
             }
         }
 
-        @media (max-width: 720px) {
-            .top-nav {
-                grid-template-columns: repeat(2, 1fr);
+        @media (max-width: 760px) {
+            .app {
+                display: block;
             }
 
-            .left-zone {
+            .sidebar {
+                min-height: auto;
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            }
+
+            .side-menu,
+            .sidebar-bottom {
+                display: none;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .top-card {
+                width: calc(50% - 8px);
+                height: 126px;
+            }
+
+            .left-panel {
+                padding: 22px;
+            }
+
+            .custom-search-box,
+            .place-card,
+            .recommend-main,
+            .info-row {
                 grid-template-columns: 1fr;
             }
 
-            .category-sidebar {
-                flex-direction: row;
-                justify-content: center;
+            .place-thumb {
+                width: 100%;
             }
 
-            .place-list {
-                height: 560px;
+            .place-actions {
+                align-items: flex-start;
             }
         }
     </style>
@@ -353,94 +892,161 @@
 
 <body>
 
-<div class="page">
+<div class="app">
 
-    <div class="top-nav">
-        <button type="button" class="top-button">test1</button>
-        <button type="button" class="top-button">test2</button>
-        <button type="button" class="top-button">test3</button>
-        <button type="button" class="top-button">test4</button>
-    </div>
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">✦</div>
+            <div>
+                <div class="brand-title">FlowTrip</div>
+                <div class="brand-sub">AI 여행 추천 서비스</div>
+            </div>
+        </div>
 
-    <div class="main-layout">
+        <nav class="side-menu">
+            <a href="#" class="side-item active">
+                <span class="side-icon">✦</span>
+                <span>여행 추천</span>
+            </a>
 
-        <div class="left-zone">
+            <a href="#" class="side-item locked">
+                <span class="side-icon">♧</span>
+                <span>지도 보기</span>
+                <span class="lock">▣</span>
+            </a>
 
-            <div class="category-sidebar">
-                <button type="button" class="category-button active" onclick="showCategory('restaurants', this)">
-                    식당
-                </button>
-                <button type="button" class="category-button" onclick="showCategory('cafes', this)">
-                    카페
-                </button>
-                <button type="button" class="category-button" onclick="showCategory('hotels', this)">
-                    숙소
-                </button>
+            <a href="#" class="side-item locked">
+                <span class="side-icon">♨</span>
+                <span>주변 정보</span>
+                <span class="lock">▣</span>
+            </a>
+
+            <a href="#" class="side-item locked">
+                <span class="side-icon">♡</span>
+                <span>나의 여행</span>
+                <span class="lock">▣</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+            <div class="weather-card">
+                <div class="weather-icon">☼</div>
+                <div>
+                    <div class="weather-main">강릉 20°C</div>
+                    <div class="weather-sub">맑음</div>
+                </div>
             </div>
 
-            <div class="place-panel">
+            <div class="login-area">
+                <div class="login-avatar">●</div>
+                <div>로그인</div>
+            </div>
+        </div>
+    </aside>
 
-                <div class="place-panel-header">
+    <main class="content">
+        <div class="main-grid">
+
+            <section class="glass-panel left-panel">
+
+                <div class="panel-header">
                     <div>
-                        <h2>주변 정보</h2>
-                        <p>카테고리를 선택하면 해당 장소들이 지도에 표시됩니다.</p>
+                        <h1 class="panel-title" id="categoryTitle">주변 식당</h1>
+                        <p class="panel-desc" id="categoryDesc">AI 추천 여행지 주변 식당을 확인해보세요.</p>
                     </div>
+
+                    <button type="button" class="filter-btn">거리순⌄</button>
                 </div>
+
+                <div class="category-tabs">
+                    <button type="button" class="category-button active"
+                            onclick="showCategory('restaurants', this, '주변 식당', 'AI 추천 여행지 주변 식당을 확인해보세요.')">
+                        식당
+                    </button>
+                    <button type="button" class="category-button"
+                            onclick="showCategory('cafes', this, '주변 카페', '여행지 근처에서 쉬어갈 카페를 확인해보세요.')">
+                        카페
+                    </button>
+                    <button type="button" class="category-button"
+                            onclick="showCategory('hotels', this, '주변 숙소', '여행지 근처 숙소 정보를 확인해보세요.')">
+                        숙소
+                    </button>
+                </div>
+
+                <div class="custom-search-box">
+                    <div class="search-input-wrap">
+                        <span>⌕</span>
+                        <input type="text"
+                               id="customPlaceInput"
+                               placeholder="업체명 또는 키워드를 입력하세요. 예: 초당순두부">
+                    </div>
+                    <button type="button" class="add-btn" onclick="searchCustomPlace()">업체 추가</button>
+                </div>
+
+                <div id="customSearchResults" class="custom-results hidden"></div>
 
                 <div id="restaurants" class="place-list">
 
                     <div class="place-card"
-                         th:each="item : ${restaurantReviews}"
+                         th:each="place : ${restaurants}"
                          th:attr="
-                         data-title=${item.place.title},
-                         data-mapx=${item.place.mapx},
-                         data-mapy=${item.place.mapy}
+                         data-title=${place.title},
+                         data-mapx=${place.mapx},
+                         data-mapy=${place.mapy}
                          ">
 
-                        <strong th:text="${item.place.title}"></strong>
+						 <div class="place-thumb">
 
-                        <div class="image-row"
-                             th:if="${item.images != null and !item.images.isEmpty()}">
-                            <a th:each="image : ${item.images}"
-                               th:href="${image.link}"
-                               target="_blank"
-                               onclick="event.stopPropagation();">
-                                <img class="place-image"
-                                     th:src="${image.thumbnail}"
-                                     th:alt="${image.title}">
-                            </a>
+						     <img th:if="${place.imageUrl != null and place.imageUrl != ''}"
+						          th:src="${place.imageUrl}"
+						          th:alt="${place.title}"
+						          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+						     <span style="display:none;"
+						           th:if="${place.imageUrl != null and place.imageUrl != ''}">
+						         ▧
+						     </span>
+
+						     <span th:if="${place.imageUrl == null or place.imageUrl == ''}">
+						         ▧
+						     </span>
+
+						 </div>
+						 
+
+                        <div class="place-info">
+                            <strong class="place-name" th:text="${place.title}">초당순두부 본점</strong>
+                            <p class="place-meta" th:text="${place.category}">한식 · 두부요리</p>
+                            <p class="place-address"
+                               th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
+                                강원특별자치도 강릉시 초당순두부길 77
+                            </p>
+                            <p class="place-time">◷ 10:00 - 20:00</p>
                         </div>
 
-                        <p th:text="${item.place.category}"></p>
+                        <div class="place-actions">
+                            <p class="distance-text">
+                                <span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.26</span>km
+                            </p>
 
-                        <p th:text="${item.place.roadAddress != null && item.place.roadAddress != '' ? item.place.roadAddress : item.place.address}">
-                        </p>
+                            <button type="button"
+                                    class="mini-btn primary"
+                                    th:attr="data-place-name=${place.title}"
+                                    onclick="loadPlaceDetail(this); event.stopPropagation();">
+                                리뷰 보기
+                            </button>
 
-                        <div class="review-box">
-                            <div class="review-title">관련 블로그 후기</div>
-
-                            <div th:if="${item.reviews == null or item.reviews.isEmpty()}">
-                                <p class="review-desc">관련 후기를 찾지 못했습니다.</p>
-                            </div>
-
-                            <div class="review-item" th:each="review : ${item.reviews}">
-                                <a th:href="${review.link}"
-                                   target="_blank"
-                                   onclick="event.stopPropagation();"
-                                   th:text="${review.title}">
-                                </a>
-
-                                <p class="review-desc" th:text="${review.description}"></p>
-
-                                <p class="review-meta"
-                                   th:text="${review.bloggerName + ' · ' + review.postDate}">
-                                </p>
-                            </div>
+                            <button type="button"
+                                    class="mini-btn"
+                                    onclick="focusPlaceFromCard(this); event.stopPropagation();">
+                                ⌖ 지도 보기
+                            </button>
                         </div>
 
+                        <div class="dynamic-detail-area"></div>
                     </div>
 
-                    <p th:if="${restaurantReviews == null or restaurantReviews.isEmpty()}">
+                    <p th:if="${restaurants == null or restaurants.isEmpty()}">
                         검색된 식당 정보가 없습니다.
                     </p>
                 </div>
@@ -455,10 +1061,53 @@
                          data-mapy=${place.mapy}
                          ">
 
-                        <strong th:text="${place.title}"></strong>
-                        <p th:text="${place.category}"></p>
-                        <p th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
-                        </p>
+						 <div class="place-thumb">
+
+						     <img th:if="${place.imageUrl != null and place.imageUrl != ''}"
+						          th:src="${place.imageUrl}"
+						          th:alt="${place.title}"
+						          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+						     <span style="display:none;"
+						           th:if="${place.imageUrl != null and place.imageUrl != ''}">
+						         ▧
+						     </span>
+
+						     <span th:if="${place.imageUrl == null or place.imageUrl == ''}">
+						         ▧
+						     </span>
+
+						 </div>
+                        <div class="place-info">
+                            <strong class="place-name" th:text="${place.title}">카페명</strong>
+                            <p class="place-meta" th:text="${place.category}">카페</p>
+                            <p class="place-address"
+                               th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
+                                주소
+                            </p>
+                            <p class="place-time">◷ 영업시간 정보 확인 필요</p>
+                        </div>
+
+                        <div class="place-actions">
+                            <p class="distance-text">
+                                <span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.48</span>km
+                            </p>
+
+                            <button type="button"
+                                    class="mini-btn primary"
+                                    th:attr="data-place-name=${place.title}"
+                                    onclick="loadPlaceDetail(this); event.stopPropagation();">
+                                리뷰 보기
+                            </button>
+
+                            <button type="button"
+                                    class="mini-btn"
+                                    onclick="focusPlaceFromCard(this); event.stopPropagation();">
+                                ⌖ 지도 보기
+                            </button>
+                        </div>
+
+                        <div class="dynamic-detail-area"></div>
                     </div>
 
                     <p th:if="${cafes == null or cafes.isEmpty()}">
@@ -475,11 +1124,53 @@
                          data-mapx=${place.mapx},
                          data-mapy=${place.mapy}
                          ">
+						 <div class="place-thumb">
 
-                        <strong th:text="${place.title}"></strong>
-                        <p th:text="${place.category}"></p>
-                        <p th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
-                        </p>
+						     <img th:if="${place.imageUrl != null and place.imageUrl != ''}"
+						          th:src="${place.imageUrl}"
+						          th:alt="${place.title}"
+						          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+
+						     <span style="display:none;"
+						           th:if="${place.imageUrl != null and place.imageUrl != ''}">
+						         ▧
+						     </span>
+
+						     <span th:if="${place.imageUrl == null or place.imageUrl == ''}">
+						         ▧
+						     </span>
+
+						 </div>
+                        <div class="place-info">
+                            <strong class="place-name" th:text="${place.title}">숙소명</strong>
+                            <p class="place-meta" th:text="${place.category}">숙소</p>
+                            <p class="place-address"
+                               th:text="${place.roadAddress != null && place.roadAddress != '' ? place.roadAddress : place.address}">
+                                주소
+                            </p>
+                            <p class="place-time">◷ 체크인 정보 확인 필요</p>
+                        </div>
+
+                        <div class="place-actions">
+                            <p class="distance-text">
+                                <span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.62</span>km
+                            </p>
+
+                            <button type="button"
+                                    class="mini-btn primary"
+                                    th:attr="data-place-name=${place.title}"
+                                    onclick="loadPlaceDetail(this); event.stopPropagation();">
+                                리뷰 보기
+                            </button>
+
+                            <button type="button"
+                                    class="mini-btn"
+                                    onclick="focusPlaceFromCard(this); event.stopPropagation();">
+                                ⌖ 지도 보기
+                            </button>
+                        </div>
+
+                        <div class="dynamic-detail-area"></div>
                     </div>
 
                     <p th:if="${hotels == null or hotels.isEmpty()}">
@@ -487,74 +1178,125 @@
                     </p>
                 </div>
 
-            </div>
+            </section>
+
+            <aside class="right-zone">
+
+                <section class="glass-panel map-card">
+                    <div class="section-head">
+                        <h2 class="section-title">주변 지도</h2>
+                        <button type="button" class="outline-btn">전체 지도 보기</button>
+                    </div>
+
+                    <div id="map"></div>
+                </section>
+
+                <section class="glass-panel recommend-card">
+                    <div class="section-head">
+                        <h2 class="section-title">AI 추천 정보</h2>
+                        <button type="button" class="outline-btn">더보기 ›</button>
+                    </div>
+
+                    <div class="recommend-main">
+						<div class="recommend-thumb">
+
+						    <img th:if="${targetPlaces != null
+						                 and !targetPlaces.isEmpty()
+						                 and targetPlaces[0].imageUrl != null}"
+						         th:src="${targetPlaces[0].imageUrl}"
+						         th:alt="${targetPlaces[0].title}">
+
+						    <span th:if="${targetPlaces == null
+						                  or targetPlaces.isEmpty()
+						                  or targetPlaces[0].imageUrl == null}">
+						        ▧
+						    </span>
+
+						</div>
+
+                        <div>
+                            <h3 class="recommend-name"
+                                th:text="${recommendationResult != null ? recommendationResult.recommendedPlaceName : '추천 여행지'}">
+                                강릉올림픽파크
+                            </h3>
+
+                            <p class="recommend-address" th:text="${naverSearchBaseQuery}">
+                                강원특별자치도 강릉시 수리골길 386
+                            </p>
+                        </div>
+
+                        <div class="recommend-distance">0.26km</div>
+                    </div>
+
+                    <div class="info-table">
+
+                        <div class="info-row">
+                            <div class="info-label">
+                                <span class="badge-icon">♡</span>
+                                추천 테마
+                            </div>
+                            <div class="info-value"
+                                 th:text="${recommendationResult != null ? recommendationResult.selectedThemeName : '-'}">
+                                올림픽 유산
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">
+                                <span class="badge-icon">♡</span>
+                                추천 이유
+                            </div>
+                            <div class="info-value"
+                                 th:text="${recommendationResult != null ? recommendationResult.reason : '-'}">
+                                2018 동계올림픽의 감동과 역사를 체험할 수 있는 공간으로,
+                                문화·역사적인 여행 분위기에 잘 어울립니다.
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">
+                                <span class="badge-icon">△</span>
+                                주의사항
+                            </div>
+                            <div class="info-value"
+                                 th:text="${recommendationResult != null ? recommendationResult.caution : '-'}">
+                                대중교통 이용 시 환승 이동 시간을 고려하세요.
+                            </div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="info-label">
+                                <span class="badge-icon">♧</span>
+                                대체 장소
+                            </div>
+                            <div class="info-value"
+                                 th:text="${recommendationResult != null ? recommendationResult.alternativePlaceName : '-'}">
+                                강릉아트센터
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div id="targetPlaceData"
+                         th:if="${targetPlaces != null and !targetPlaces.isEmpty()}"
+                         th:attr="
+                         data-title=${targetPlaces[0].title},
+                         data-mapx=${targetPlaces[0].mapx},
+                         data-mapy=${targetPlaces[0].mapy}
+                         ">
+                    </div>
+                </section>
+
+            </aside>
+
         </div>
 
-        <div class="right-zone">
+        <section class="glass-panel debug-card">
+            <h3>AI 원본 응답</h3>
+            <pre th:text="${gptResult}"></pre>
+        </section>
 
-            <div class="map-card">
-                <div id="map"></div>
-            </div>
-
-            <div class="recommend-card">
-
-                <h2 th:text="${recommendationResult != null ? recommendationResult.recommendedPlaceName : '추천 여행지'}">
-                    추천 여행지
-                </h2>
-
-                <div class="info-block">
-                    <div class="info-label">추천 테마</div>
-                    <div class="info-value"
-                         th:text="${recommendationResult != null ? recommendationResult.selectedThemeName : '-'}">
-                    </div>
-                </div>
-
-                <div class="info-block">
-                    <div class="info-label">추천 이유</div>
-                    <div class="info-value"
-                         th:text="${recommendationResult != null ? recommendationResult.reason : '-'}">
-                    </div>
-                </div>
-
-                <div class="info-block">
-                    <div class="info-label">주의사항</div>
-                    <div class="info-value"
-                         th:text="${recommendationResult != null ? recommendationResult.caution : '-'}">
-                    </div>
-                </div>
-
-                <div class="info-block">
-                    <div class="info-label">대체 장소</div>
-                    <div class="info-value"
-                         th:text="${recommendationResult != null ? recommendationResult.alternativePlaceName : '-'}">
-                    </div>
-                </div>
-
-                <div class="info-block">
-                    <div class="info-label">네이버 검색 기준어</div>
-                    <div class="info-value" th:text="${naverSearchBaseQuery}"></div>
-                </div>
-
-                <div id="targetPlaceData"
-                     th:if="${targetPlaces != null and !targetPlaces.isEmpty()}"
-                     th:attr="
-                     data-title=${targetPlaces[0].title},
-                     data-mapx=${targetPlaces[0].mapx},
-                     data-mapy=${targetPlaces[0].mapy}
-                     ">
-                </div>
-
-            </div>
-
-        </div>
-
-    </div>
-
-    <div class="debug-card">
-        <h3>AI 원본 응답</h3>
-        <pre th:text="${gptResult}"></pre>
-    </div>
-
+    </main>
 </div>
 
 <script th:src="@{'https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=' + ${naverMapClientId}}"></script>
@@ -567,6 +1309,9 @@
 
     let categoryMarkers = [];
     let categoryInfoWindows = [];
+
+    let customMarkers = [];
+    let customInfoWindows = [];
 
     window.onload = function () {
         const target = document.getElementById('targetPlaceData');
@@ -584,7 +1329,15 @@
 
         map = new naver.maps.Map('map', {
             center: mainPosition,
-            zoom: 15
+            zoom: 15,
+            mapTypeControl: false,
+            scaleControl: false,
+            logoControl: false,
+            mapDataControl: false,
+            zoomControl: true,
+            zoomControlOptions: {
+                position: naver.maps.Position.RIGHT_CENTER
+            }
         });
 
         drawMainMarker(title, mainPosition);
@@ -602,14 +1355,29 @@
         mainMarker = new naver.maps.Marker({
             position: position,
             map: map,
-            title: title
+            title: title,
+            icon: {
+                content:
+                    '<div style="' +
+                    'width:42px;height:42px;border-radius:50%;' +
+                    'background:#2f80ff;display:grid;place-items:center;' +
+                    'box-shadow:0 8px 22px rgba(47,128,255,.45);' +
+                    'border:3px solid white;color:white;font-weight:900;' +
+                    '">●</div>',
+                size: new naver.maps.Size(42, 42),
+                anchor: new naver.maps.Point(21, 21)
+            }
         });
 
         mainInfoWindow = new naver.maps.InfoWindow({
             content:
-                '<div style="padding:10px;font-size:14px;font-weight:800;white-space:nowrap;">'
-                + title +
-                '</div>'
+                '<div style="padding:12px 16px;font-size:14px;font-weight:900;white-space:nowrap;' +
+                'background:rgba(30,35,36,.92);color:#fff;border-radius:10px;">'
+                + escapeHtml(title) +
+                '</div>',
+            borderWidth: 0,
+            backgroundColor: "transparent",
+            disableAnchor: true
         });
 
         mainInfoWindow.open(map, mainMarker);
@@ -647,12 +1415,24 @@
 
             const infoWindow = new naver.maps.InfoWindow({
                 content:
-                    '<div style="padding:10px;font-size:14px;font-weight:700;white-space:nowrap;">'
-                    + title +
-                    '</div>'
+                    '<div style="padding:10px 14px;font-size:13px;font-weight:800;white-space:nowrap;' +
+                    'background:rgba(30,35,36,.92);color:#fff;border-radius:10px;">'
+                    + escapeHtml(title) +
+                    '</div>',
+                borderWidth: 0,
+                backgroundColor: "transparent",
+                disableAnchor: true
             });
 
             naver.maps.Event.addListener(marker, 'click', function () {
+                categoryInfoWindows.forEach(iw => iw.close());
+                infoWindow.open(map, marker);
+            });
+
+            card.addEventListener('click', function () {
+                map.setCenter(position);
+                map.setZoom(16);
+                categoryInfoWindows.forEach(iw => iw.close());
                 infoWindow.open(map, marker);
             });
 
@@ -666,7 +1446,7 @@
         }
     }
 
-    function showCategory(categoryId, button) {
+    function showCategory(categoryId, button, title, desc) {
         document.querySelectorAll('.place-list')
             .forEach(list => list.classList.add('hidden'));
 
@@ -678,7 +1458,300 @@
 
         button.classList.add('active');
 
+        document.getElementById('categoryTitle').textContent = title;
+        document.getElementById('categoryDesc').textContent = desc;
+
         drawCategoryMarkers(categoryId);
+    }
+
+    function focusPlaceFromCard(button) {
+        const card = button.closest('.place-card');
+
+        if (!card || !map) {
+            return;
+        }
+
+        const mapx = card.getAttribute('data-mapx');
+        const mapy = card.getAttribute('data-mapy');
+        const title = card.getAttribute('data-title');
+
+        if (!mapx || !mapy) {
+            return;
+        }
+
+        const position = toLatLng(mapx, mapy);
+        map.setCenter(position);
+        map.setZoom(16);
+
+        const targetIndex = Array.from(document.querySelectorAll('.place-list:not(.hidden) .place-card')).indexOf(card);
+
+        if (categoryInfoWindows[targetIndex] && categoryMarkers[targetIndex]) {
+            categoryInfoWindows.forEach(iw => iw.close());
+            categoryInfoWindows[targetIndex].open(map, categoryMarkers[targetIndex]);
+        }
+    }
+
+    function searchCustomPlace() {
+        const input = document.getElementById('customPlaceInput');
+        const target = document.getElementById('targetPlaceData');
+
+        if (!input || !target) {
+            return;
+        }
+
+        const query = input.value.trim();
+
+        if (!query) {
+            alert("업체명을 입력해주세요.");
+            return;
+        }
+
+        const targetMapx = target.getAttribute('data-mapx');
+        const targetMapy = target.getAttribute('data-mapy');
+
+        const url = "/api/places/search"
+            + "?query=" + encodeURIComponent(query)
+            + "&targetMapx=" + encodeURIComponent(targetMapx)
+            + "&targetMapy=" + encodeURIComponent(targetMapy);
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                renderCustomSearchResults(data);
+            })
+            .catch(error => {
+                console.error(error);
+                alert("업체 검색 중 오류가 발생했습니다.");
+            });
+    }
+
+    function renderCustomSearchResults(places) {
+        const resultsBox = document.getElementById('customSearchResults');
+
+        resultsBox.innerHTML = "";
+        resultsBox.classList.remove('hidden');
+
+        const header = document.createElement('div');
+        header.className = "custom-results-header";
+
+        const title = document.createElement('div');
+        title.className = "custom-results-title";
+        title.textContent = "직접 추가 검색 결과";
+
+        const closeButton = document.createElement('button');
+        closeButton.className = "close-button";
+        closeButton.textContent = "닫기";
+        closeButton.onclick = function () {
+            resultsBox.innerHTML = "";
+            resultsBox.classList.add("hidden");
+        };
+
+        header.appendChild(title);
+        header.appendChild(closeButton);
+        resultsBox.appendChild(header);
+
+        if (!places || places.length === 0) {
+            const empty = document.createElement('p');
+            empty.textContent = "검색 결과가 없습니다.";
+            empty.style.color = "rgba(255,255,255,.7)";
+            resultsBox.appendChild(empty);
+            return;
+        }
+
+		places.forEach(place => {
+		    const card = document.createElement('div');
+		    card.className = "place-card";
+
+		    const imageHtml = place.imageUrl
+		        ? '<img src="' + escapeHtml(place.imageUrl) + '" alt="' + escapeHtml(place.title) + '">'
+		        : '<span>▧</span>';
+
+		    card.innerHTML =
+		        '<div class="place-thumb">' + imageHtml + '</div>'
+		        + '<div class="place-info">'
+		        + '<strong class="place-name">' + escapeHtml(place.title) + '</strong>'
+		        + '<p class="place-meta">' + escapeHtml(place.category || "") + '</p>'
+		        + '<p class="place-address">' + escapeHtml(place.roadAddress || place.address || "") + '</p>'
+		        + '</div>'
+		        + '<div class="place-actions">'
+		        + '<p class="distance-text">' + Number(place.distanceKm).toFixed(2) + 'km</p>'
+		        + '<button type="button" class="mini-btn">⌖ 지도 보기</button>'
+		        + '</div>';
+
+		    card.addEventListener('click', function () {
+		        drawCustomMarker(place.title, place.mapx, place.mapy);
+		    });
+
+		    resultsBox.appendChild(card);
+		});
+		}
+
+    function drawCustomMarker(title, mapx, mapy) {
+        if (!mapx || !mapy) {
+            return;
+        }
+
+        const position = toLatLng(mapx, mapy);
+
+        const marker = new naver.maps.Marker({
+            position: position,
+            map: map,
+            title: title
+        });
+
+        const infoWindow = new naver.maps.InfoWindow({
+            content:
+                '<div style="padding:10px 14px;font-size:13px;font-weight:900;white-space:nowrap;' +
+                'background:rgba(30,35,36,.92);color:#fff;border-radius:10px;">'
+                + escapeHtml(title)
+                + '</div>',
+            borderWidth: 0,
+            backgroundColor: "transparent",
+            disableAnchor: true
+        });
+
+        infoWindow.open(map, marker);
+
+        customMarkers.push(marker);
+        customInfoWindows.push(infoWindow);
+
+        map.setCenter(position);
+        map.setZoom(16);
+    }
+
+    function loadPlaceDetail(button) {
+        const placeName = button.getAttribute('data-place-name');
+
+        if (!placeName) {
+            return;
+        }
+
+        button.disabled = true;
+        button.textContent = "불러오는 중...";
+
+        fetch("/api/place/detail?placeName=" + encodeURIComponent(placeName))
+            .then(response => response.json())
+            .then(data => {
+                renderPlaceDetail(button, data);
+                button.textContent = "리뷰 완료";
+            })
+            .catch(error => {
+                console.error(error);
+                button.disabled = false;
+                button.textContent = "리뷰 보기";
+                alert("리뷰를 불러오지 못했습니다.");
+            });
+    }
+
+    function renderPlaceDetail(button, data) {
+        const card = button.closest('.place-card');
+
+        if (!card) {
+            return;
+        }
+
+        const area = card.querySelector('.dynamic-detail-area');
+
+        if (!area) {
+            return;
+        }
+
+        area.innerHTML = "";
+
+        if (data.images && data.images.length > 0) {
+            const imageRow = document.createElement('div');
+            imageRow.className = "image-row";
+
+            data.images.forEach(image => {
+                const link = document.createElement('a');
+                link.href = image.link;
+                link.target = "_blank";
+                link.onclick = function (event) {
+                    event.stopPropagation();
+                };
+
+                const img = document.createElement('img');
+                img.className = "place-image";
+                img.src = image.thumbnail;
+                img.alt = image.title || "";
+
+                link.appendChild(img);
+                imageRow.appendChild(link);
+            });
+
+            area.appendChild(imageRow);
+        }
+
+        const reviewBox = document.createElement('div');
+        reviewBox.className = "review-box";
+
+        const title = document.createElement('div');
+        title.className = "review-title";
+        title.textContent = "관련 블로그 후기";
+
+        reviewBox.appendChild(title);
+
+        if (!data.reviews || data.reviews.length === 0) {
+            const empty = document.createElement('p');
+            empty.className = "review-desc";
+            empty.textContent = "관련 후기가 없습니다.";
+            reviewBox.appendChild(empty);
+        } else {
+            data.reviews.forEach(review => {
+                const item = document.createElement('div');
+                item.className = "review-item";
+
+                const link = document.createElement('a');
+                link.href = review.link;
+                link.target = "_blank";
+                link.textContent = review.title || "후기 보기";
+                link.onclick = function (event) {
+                    event.stopPropagation();
+                };
+
+                const desc = document.createElement('p');
+                desc.className = "review-desc";
+                desc.textContent = review.description || "";
+
+                const meta = document.createElement('p');
+                meta.className = "review-meta";
+                meta.textContent = (review.bloggerName || "") + " · " + (review.postDate || "");
+
+                item.appendChild(link);
+                item.appendChild(desc);
+                item.appendChild(meta);
+
+                reviewBox.appendChild(item);
+            });
+        }
+
+        const closeReviewButton = document.createElement('button');
+        closeReviewButton.className = "close-button";
+        closeReviewButton.textContent = "리뷰 닫기";
+        closeReviewButton.style.marginTop = "12px";
+
+        closeReviewButton.onclick = function (event) {
+            event.stopPropagation();
+            area.innerHTML = "";
+            button.disabled = false;
+            button.textContent = "리뷰 보기";
+        };
+
+        reviewBox.appendChild(closeReviewButton);
+        area.appendChild(reviewBox);
+    }
+
+    function escapeHtml(value) {
+        if (value == null) {
+            return "";
+        }
+
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
     }
 </script>
 
