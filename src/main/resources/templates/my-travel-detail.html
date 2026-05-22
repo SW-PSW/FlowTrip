@@ -400,9 +400,9 @@
         </div>
 
         <nav class="side-menu">
-            <a href="/" class="side-item">
+            <a href="/travel-result/latest" class="side-item">
                 <span class="side-icon">✦</span>
-                <span>여행 추천</span>
+                <span>최근 추천</span>
             </a>
 
             <a href="/my-travel" class="side-item active">
@@ -440,7 +440,7 @@
                     공유하기
                 </a>
 
-                <a class="primary-link" href="/">새 추천 받기</a>
+                <a class="primary-link" href="/travel-result/latest">최근 추천으로 돌아가기</a>
 
                 <form th:action="@{/my-travel/{id}/delete(id=${travelPlan.id})}"
                       method="post"

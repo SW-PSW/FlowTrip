@@ -3,6 +3,7 @@ package capstone.hallym.xx.flowtrip.controller;
 import java.util.ArrayList;
 import java.util.List;
 
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -16,13 +17,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import capstone.hallym.xx.flowtrip.dto.RecommendationCandidatesDto;
 import capstone.hallym.xx.flowtrip.dto.RecommendationResultDto;
 import capstone.hallym.xx.flowtrip.dto.TravelRequestDto;
+import capstone.hallym.xx.flowtrip.dto.WeatherForecastDto;
 import capstone.hallym.xx.flowtrip.entity.Place;
 import capstone.hallym.xx.flowtrip.repository.PlaceRepository;
+import capstone.hallym.xx.flowtrip.repository.TravelCourseItemRepository;
 import capstone.hallym.xx.flowtrip.service.NaverImageSearchService;
 import capstone.hallym.xx.flowtrip.service.NaverLocalSearchService;
 import capstone.hallym.xx.flowtrip.service.OpenAiService;
 import capstone.hallym.xx.flowtrip.service.RecommendationCandidateService;
 import capstone.hallym.xx.flowtrip.service.ThemeService;
+import capstone.hallym.xx.flowtrip.service.WeatherForecastService;
 import capstone.hallym.xx.flowtrip.dto.CongestionAnalysisDto;
 import capstone.hallym.xx.flowtrip.dto.NearbyPlaceDto;
 import capstone.hallym.xx.flowtrip.service.CongestionAnalysisService;
@@ -39,6 +43,8 @@ public class TravelController {
     private final ObjectMapper objectMapper;
     private final NaverImageSearchService naverImageSearchService;
     private final CongestionAnalysisService congestionAnalysisService;
+    private final WeatherForecastService weatherForecastService;
+    private final TravelCourseItemRepository travelCourseItemRepository;
     
     @Value("${naver.map.client-id}")
     private String naverMapClientId;
@@ -48,7 +54,10 @@ public class TravelController {
                             OpenAiService openAiService,
                             NaverLocalSearchService naverLocalSearchService,
                             PlaceRepository placeRepository,
-                            NaverImageSearchService naverImageSearchService, CongestionAnalysisService congestionAnalysisService) {
+                            NaverImageSearchService naverImageSearchService,
+                            CongestionAnalysisService congestionAnalysisService,
+                            WeatherForecastService weatherForecastService,
+                            TravelCourseItemRepository travelCourseItemRepository) {
 
         this.themeService = themeService;
         this.recommendationCandidateService = recommendationCandidateService;
@@ -58,6 +67,8 @@ public class TravelController {
         this.objectMapper = new ObjectMapper();
         this.naverImageSearchService = naverImageSearchService;
         this.congestionAnalysisService = congestionAnalysisService;
+        this.weatherForecastService = weatherForecastService;
+        this.travelCourseItemRepository = travelCourseItemRepository;
     }
     
     @GetMapping("/api/mood-groups")
@@ -71,10 +82,25 @@ public class TravelController {
         return "redirect:/react/index.html";
     }
 
+    @GetMapping("/travel-result/latest")
+    public String showLatestTravelResult(HttpSession session, Model model) {
+
+        Boolean hasLatestTravelResult =
+                (Boolean) session.getAttribute("lastTravelResultExists");
+
+        if (!Boolean.TRUE.equals(hasLatestTravelResult)) {
+            return "redirect:/react/index.html";
+        }
+
+        restoreLastTravelResult(session, model);
+        return "travel-result";
+    }
+
     @PostMapping("/submit")
     public String submitForm(@Valid TravelRequestDto dto,
             BindingResult bindingResult,
-            Model model) {
+            Model model,
+            HttpSession session) {
 
 		if (bindingResult.hasErrors()) {
 		model.addAttribute("moodGroups", themeService.getMoodGroups());
@@ -109,6 +135,8 @@ public class TravelController {
 		* 혼잡도 분석에도 사용
 		*/
 		Place selectedPlace = null;
+		String selectedRegionName = "";
+		String selectedPlaceName = "";
 		
 		if (recommendationResult != null
 		&& recommendationResult.getRecommendedPlaceId() != null
@@ -126,10 +154,12 @@ public class TravelController {
 		
 		   String regionName = "";
 		   String placeName = selectedPlace.getPlaceName();
+		   selectedPlaceName = placeName == null ? "" : placeName;
 		
 		   if (selectedPlace.getRegion() != null) {
 		       regionName =
 		               selectedPlace.getRegion().getRegionName();
+		       selectedRegionName = regionName == null ? "" : regionName;
 		   }
 		
 		   naverSearchBaseQuery =
@@ -154,6 +184,8 @@ public class TravelController {
 		&& recommendationResult != null
 		&& recommendationResult.getRecommendedPlaceName() != null
 		&& !recommendationResult.getRecommendedPlaceName().isBlank()) {
+
+		selectedPlaceName = recommendationResult.getRecommendedPlaceName();
 		
 		naverSearchBaseQuery =
 		   naverLocalSearchService.buildSearchBaseQuery(
@@ -169,28 +201,7 @@ public class TravelController {
 		* ===========================
 		*/
 		CongestionAnalysisDto congestionAnalysis = null;
-		
-		if (recommendationResult != null) {
-		
-		congestionAnalysis =
-		   congestionAnalysisService.analyze(
-		           dto,
-		           recommendationResult,
-		           selectedPlace
-		   );
-		
-		/*
-		* AI 응답 DTO에 서버 계산 혼잡도 덮어쓰기
-		*/
-		recommendationResult.applyCongestionAnalysis(
-		   congestionAnalysis
-		);
-		
-		System.out.println("===== 혼잡도 분석 결과 =====");
-		System.out.println("점수 = " + congestionAnalysis.getCongestionScore());
-		System.out.println("등급 = " + congestionAnalysis.getCongestionLevel());
-		System.out.println("사유 = " + congestionAnalysis.getCongestionReason());
-		}
+		WeatherForecastDto weatherForecast = null;
 		
 		/*
 		* 네이버 검색
@@ -203,8 +214,10 @@ public class TravelController {
 		* 대표 장소
 		*/
 		targetPlaces =
-		   naverLocalSearchService.searchTargetPlace(
-		           naverSearchBaseQuery
+		   resolveTargetPlaces(
+		           naverSearchBaseQuery,
+		           selectedRegionName,
+		           selectedPlaceName
 		   );
 		if (targetPlaces == null || targetPlaces.isEmpty()) {
 		    System.out.println("대표 장소 검색 실패 → 추천 장소명으로 재검색");
@@ -214,8 +227,10 @@ public class TravelController {
 		            && !recommendationResult.getRecommendedPlaceName().isBlank()) {
 
 		        targetPlaces =
-		                naverLocalSearchService.searchTargetPlace(
-		                        recommendationResult.getRecommendedPlaceName()
+		                resolveTargetPlaces(
+		                        recommendationResult.getRecommendedPlaceName(),
+		                        selectedRegionName,
+		                        selectedPlaceName
 		                );
 		    }
 		}
@@ -223,12 +238,14 @@ public class TravelController {
 		/*
 		* 식당
 		*/
+		String nearbySearchBaseQuery =
+		        buildNearbySearchBaseQuery(targetPlaces, selectedRegionName, selectedPlaceName);
+
 		restaurants =
-		   searchByKeywordsOrDefault(
-		           recommendationResult == null
-		                   ? null
-		                   : recommendationResult.getRestaurantKeywords(),
-		           naverSearchBaseQuery + " 근처 식당",
+		   searchNearbyPlaces(
+		           nearbySearchBaseQuery,
+		           selectedRegionName,
+		           "식당",
 		           10
 		   );
 		
@@ -236,11 +253,10 @@ public class TravelController {
 		* 카페
 		*/
 		cafes =
-		   searchByKeywordsOrDefault(
-		           recommendationResult == null
-		                   ? null
-		                   : recommendationResult.getCafeKeywords(),
-		           naverSearchBaseQuery + " 근처 카페",
+		   searchNearbyPlaces(
+		           nearbySearchBaseQuery,
+		           selectedRegionName,
+		           "카페",
 		           10
 		   );
 		
@@ -248,11 +264,10 @@ public class TravelController {
 		* 숙소
 		*/
 		hotels =
-		   searchByKeywordsOrDefault(
-		           recommendationResult == null
-		                   ? null
-		                   : recommendationResult.getHotelKeywords(),
-		           naverSearchBaseQuery + " 근처 숙소",
+		   searchNearbyPlaces(
+		           nearbySearchBaseQuery,
+		           selectedRegionName,
+		           "숙소",
 		           10
 		   );
 		
@@ -260,11 +275,10 @@ public class TravelController {
 		* 관광지
 		*/
 		attractions =
-		   searchByKeywordsOrDefault(
-		           recommendationResult == null
-		                   ? null
-		                   : recommendationResult.getAttractionKeywords(),
-		           naverSearchBaseQuery + " 근처 관광지",
+		   searchNearbyPlaces(
+		           nearbySearchBaseQuery,
+		           selectedRegionName,
+		           "관광지",
 		           10
 		   );
 		
@@ -294,6 +308,15 @@ public class TravelController {
 			       target,
 			       attractions
 			);
+
+			keepNearbyPlaces(restaurants, 12.0, 3);
+			keepNearbyPlaces(cafes, 12.0, 3);
+			keepNearbyPlaces(hotels, 25.0, 3);
+			keepNearbyPlaces(attractions, 15.0, 3);
+			keepRegionPlaces(restaurants, selectedRegionName, 3);
+			keepRegionPlaces(cafes, selectedRegionName, 3);
+			keepRegionPlaces(hotels, selectedRegionName, 3);
+			keepRegionPlaces(attractions, selectedRegionName, 3);
 			
 			System.out.println("=== 최종 추천 장소 네이버 검색 결과 ===");
 			System.out.println("title = " + target.getTitle());
@@ -309,6 +332,36 @@ public class TravelController {
 			System.out.println("숙소 검색 결과 개수 = " + hotels.size());
 			System.out.println("관광지 검색 결과 개수 = " + attractions.size());
 			}
+
+			if (recommendationResult != null) {
+
+			weatherForecast =
+			   weatherForecastService.getForecast(
+			           resolveWeatherLatitude(selectedPlace, targetPlaces),
+			           resolveWeatherLongitude(selectedPlace, targetPlaces),
+			           dto.getStartDate()
+			   );
+			
+			congestionAnalysis =
+			   congestionAnalysisService.analyze(
+			           dto,
+			           recommendationResult,
+			           selectedPlace,
+			           weatherForecast
+			   );
+			
+			/*
+			* AI 응답 DTO에 서버 계산 혼잡도 덮어쓰기
+			*/
+			recommendationResult.applyCongestionAnalysis(
+			   congestionAnalysis
+			);
+			
+			System.out.println("===== 혼잡도 분석 결과 =====");
+			System.out.println("점수 = " + congestionAnalysis.getCongestionScore());
+			System.out.println("등급 = " + congestionAnalysis.getCongestionLevel());
+			System.out.println("사유 = " + congestionAnalysis.getCongestionReason());
+			}
 			
 			/*
 			* 이미지 채우기
@@ -317,6 +370,12 @@ public class TravelController {
 			fillImages(limitList(cafes, 3));
 			fillImages(limitList(hotels, 2));
 			fillImages(limitList(attractions, 2));
+
+			applySavedCounts(targetPlaces);
+			applySavedCounts(restaurants);
+			applySavedCounts(cafes);
+			applySavedCounts(hotels);
+			applySavedCounts(attractions);
 			
 			/*
 			* model 전달
@@ -333,6 +392,10 @@ public class TravelController {
 			model.addAttribute(
 			"congestionAnalysis",
 			congestionAnalysis
+			);
+			model.addAttribute(
+			"weatherForecast",
+			weatherForecast
 			);
 			fillImages(restaurants);
 			model.addAttribute(
@@ -366,42 +429,417 @@ public class TravelController {
 			"naverMapClientId",
 			naverMapClientId
 			);
+
+			storeLastTravelResult(
+			        session,
+			        dto,
+			        gptResult,
+			        recommendationResult,
+			        congestionAnalysis,
+			        weatherForecast,
+			        candidates,
+			        targetPlaces,
+			        restaurants,
+			        cafes,
+			        hotels,
+			        attractions,
+			        naverSearchBaseQuery
+			);
 			
 			return "travel-result";
 			}
 
-    private List<NearbyPlaceDto> searchByKeywordsOrDefault(List<String> keywords,
-                                                           String defaultQuery,
-                                                           int limit) {
+    private void storeLastTravelResult(HttpSession session,
+                                       TravelRequestDto request,
+                                       String gptResult,
+                                       RecommendationResultDto recommendationResult,
+                                       CongestionAnalysisDto congestionAnalysis,
+                                       WeatherForecastDto weatherForecast,
+                                       RecommendationCandidatesDto candidates,
+                                       List<NearbyPlaceDto> targetPlaces,
+                                       List<NearbyPlaceDto> restaurants,
+                                       List<NearbyPlaceDto> cafes,
+                                       List<NearbyPlaceDto> hotels,
+                                       List<NearbyPlaceDto> attractions,
+                                       String naverSearchBaseQuery) {
 
-        List<NearbyPlaceDto> result = new ArrayList<>();
+        session.setAttribute("lastTravelResultExists", true);
+        session.setAttribute("lastTravelRequest", request);
+        session.setAttribute("lastGptResult", gptResult);
+        session.setAttribute("lastRecommendationResult", recommendationResult);
+        session.setAttribute("lastCongestionAnalysis", congestionAnalysis);
+        session.setAttribute("lastWeatherForecast", weatherForecast);
+        session.setAttribute("lastThemeCandidates", candidates == null ? "" : candidates.getThemeCandidatesText());
+        session.setAttribute("lastPlaceCandidates", candidates == null ? "" : candidates.getPlaceCandidatesText());
+        session.setAttribute("lastTargetPlaces", targetPlaces);
+        session.setAttribute("lastTargetPlaceData", targetPlaces != null && !targetPlaces.isEmpty() ? targetPlaces.get(0) : null);
+        session.setAttribute("lastRestaurants", restaurants);
+        session.setAttribute("lastCafes", cafes);
+        session.setAttribute("lastHotels", hotels);
+        session.setAttribute("lastAttractions", attractions);
+        session.setAttribute("lastNaverSearchBaseQuery", naverSearchBaseQuery);
+    }
 
-        if (keywords != null && !keywords.isEmpty()) {
-            for (String keyword : keywords) {
-                if (keyword == null || keyword.isBlank()) {
-                    continue;
-                }
+    private void restoreLastTravelResult(HttpSession session, Model model) {
 
-                List<NearbyPlaceDto> searched =
-                        naverLocalSearchService.searchPlacesByKeyword(keyword);
+        model.addAttribute("request", session.getAttribute("lastTravelRequest"));
+        model.addAttribute("gptResult", session.getAttribute("lastGptResult"));
+        model.addAttribute("recommendationResult", session.getAttribute("lastRecommendationResult"));
+        model.addAttribute("congestionAnalysis", session.getAttribute("lastCongestionAnalysis"));
+        model.addAttribute("weatherForecast", session.getAttribute("lastWeatherForecast"));
+        model.addAttribute("themeCandidates", session.getAttribute("lastThemeCandidates"));
+        model.addAttribute("placeCandidates", session.getAttribute("lastPlaceCandidates"));
+        model.addAttribute("targetPlaces", session.getAttribute("lastTargetPlaces"));
+        model.addAttribute("targetPlaceData", session.getAttribute("lastTargetPlaceData"));
+        model.addAttribute("restaurants", session.getAttribute("lastRestaurants"));
+        model.addAttribute("cafes", session.getAttribute("lastCafes"));
+        model.addAttribute("hotels", session.getAttribute("lastHotels"));
+        model.addAttribute("attractions", session.getAttribute("lastAttractions"));
+        model.addAttribute("naverSearchBaseQuery", session.getAttribute("lastNaverSearchBaseQuery"));
+        model.addAttribute("naverMapClientId", naverMapClientId);
+    }
 
-                addUniquePlaces(result, searched, limit);
+    private List<NearbyPlaceDto> resolveTargetPlaces(String baseQuery,
+                                                     String regionName,
+                                                     String placeName) {
 
-                if (result.size() >= limit) {
-                    break;
-                }
+        List<String> queries = new ArrayList<>();
+        addSearchQuery(queries, baseQuery);
+
+        String simplifiedPlaceName = simplifyPlaceName(placeName);
+        String safeRegionName = regionName == null ? "" : regionName.trim();
+
+        if (!safeRegionName.isBlank() && !simplifiedPlaceName.isBlank()) {
+            addSearchQuery(queries, "강원특별자치도 " + safeRegionName + " " + simplifiedPlaceName);
+            addSearchQuery(queries, safeRegionName + " " + simplifiedPlaceName);
+        }
+
+        if (!simplifiedPlaceName.isBlank()) {
+            addSearchQuery(queries, simplifiedPlaceName);
+        }
+
+        List<NearbyPlaceDto> fallbackCandidates = new ArrayList<>();
+
+        for (String query : queries) {
+            List<NearbyPlaceDto> candidates =
+                    naverLocalSearchService.searchTargetPlace(query);
+
+            if (candidates == null || candidates.isEmpty()) {
+                continue;
+            }
+
+            addUniquePlaces(fallbackCandidates, candidates, 10);
+
+            NearbyPlaceDto preferredTarget =
+                    selectPreferredTargetPlace(candidates, regionName, placeName);
+
+            if (preferredTarget != null) {
+                List<NearbyPlaceDto> targetPlaces = new ArrayList<>();
+                targetPlaces.add(preferredTarget);
+                return targetPlaces;
             }
         }
 
-        if (result.isEmpty()) {
-            result = naverLocalSearchService.searchPlacesByKeyword(defaultQuery);
+        NearbyPlaceDto fallbackTarget =
+                selectPreferredTargetPlace(fallbackCandidates, "", placeName);
+
+        if (fallbackTarget == null) {
+            return fallbackCandidates;
         }
 
-        if (result.size() > limit) {
-            return new ArrayList<>(result.subList(0, limit));
+        List<NearbyPlaceDto> targetPlaces = new ArrayList<>();
+        targetPlaces.add(fallbackTarget);
+        return targetPlaces;
+    }
+
+    private String buildNearbySearchBaseQuery(List<NearbyPlaceDto> targetPlaces,
+                                              String regionName,
+                                              String placeName) {
+
+        StringBuilder query = new StringBuilder("강원특별자치도");
+        String normalizedRegionName = regionName == null ? "" : regionName.trim();
+
+        if (!normalizedRegionName.isBlank()) {
+            query.append(" ").append(normalizedRegionName);
+        }
+
+        String localAreaName = extractLocalAreaName(targetPlaces);
+
+        if (!localAreaName.isBlank()
+                && !normalizeSearchText(query.toString()).contains(normalizeSearchText(localAreaName))) {
+            query.append(" ").append(localAreaName);
+        }
+
+        return query.toString().trim();
+    }
+
+    private String extractLocalAreaName(List<NearbyPlaceDto> targetPlaces) {
+        if (targetPlaces == null || targetPlaces.isEmpty()) {
+            return "";
+        }
+
+        NearbyPlaceDto target = targetPlaces.get(0);
+        String addressText = target.getRoadAddress();
+
+        if (addressText == null || addressText.isBlank()) {
+            addressText = target.getAddress();
+        }
+
+        if (addressText == null || addressText.isBlank()) {
+            return "";
+        }
+
+        String[] parts = addressText.split("\\s+");
+
+        for (String part : parts) {
+            if (part.endsWith("읍")
+                    || part.endsWith("면")
+                    || part.endsWith("동")
+                    || part.endsWith("리")) {
+                return part;
+            }
+        }
+
+        return "";
+    }
+
+    private NearbyPlaceDto selectPreferredTargetPlace(List<NearbyPlaceDto> candidates,
+                                                     String regionName,
+                                                     String placeName) {
+
+        if (candidates == null || candidates.isEmpty()) {
+            return null;
+        }
+
+        NearbyPlaceDto best = null;
+        int bestScore = Integer.MIN_VALUE;
+
+        for (NearbyPlaceDto candidate : candidates) {
+            int score = scoreTargetCandidate(candidate, regionName, placeName);
+
+            if (score > bestScore) {
+                best = candidate;
+                bestScore = score;
+            }
+        }
+
+        if (regionName != null && !regionName.isBlank() && bestScore < 50) {
+            return null;
+        }
+
+        return best;
+    }
+
+    private int scoreTargetCandidate(NearbyPlaceDto candidate,
+                                     String regionName,
+                                     String placeName) {
+
+        if (candidate == null) {
+            return Integer.MIN_VALUE;
+        }
+
+        int score = 0;
+        String addressText = joinText(candidate.getAddress(), candidate.getRoadAddress());
+        String title = normalizeSearchText(candidate.getTitle());
+        String normalizedPlaceName = normalizeSearchText(simplifyPlaceName(placeName));
+
+        if (addressText.contains("강원")) {
+            score += 30;
+        }
+
+        if (matchesRegion(candidate, regionName)) {
+            score += 70;
+        }
+
+        if (!normalizedPlaceName.isBlank() && title.contains(normalizedPlaceName)) {
+            score += 50;
+        }
+
+        for (String token : normalizedPlaceName.split(" ")) {
+            if (!token.isBlank() && token.length() >= 2 && title.contains(token)) {
+                score += 12;
+            }
+        }
+
+        if (title.contains("마켓") && !normalizedPlaceName.contains("마켓")) {
+            score -= 25;
+        }
+
+        if (!addressText.contains("강원")) {
+            score -= 40;
+        }
+
+        return score;
+    }
+
+    private void addSearchQuery(List<String> queries, String query) {
+        if (query == null || query.isBlank()) {
+            return;
+        }
+
+        String trimmedQuery = query.trim();
+
+        if (!queries.contains(trimmedQuery)) {
+            queries.add(trimmedQuery);
+        }
+    }
+
+    private void applySavedCounts(List<NearbyPlaceDto> places) {
+
+        if (places == null || places.isEmpty()) {
+            return;
+        }
+
+        for (NearbyPlaceDto place : places) {
+            String placeName = cleanPlaceTitle(place.getTitle());
+
+            if (placeName.isBlank()) {
+                place.setSavedCount(0);
+                continue;
+            }
+
+            place.setSavedCount(countSavedPlace(placeName));
+        }
+    }
+
+    private long countSavedPlace(String placeName) {
+        long count = travelCourseItemRepository.countByPlaceName(placeName);
+
+        if (count == 0) {
+            count = travelCourseItemRepository.countByPlaceNameContaining(placeName);
+        }
+
+        return count;
+    }
+
+    private Double resolveWeatherLatitude(Place selectedPlace,
+                                          List<NearbyPlaceDto> targetPlaces) {
+
+        if (selectedPlace != null && selectedPlace.getLatitude() != null) {
+            return selectedPlace.getLatitude();
+        }
+
+        if (targetPlaces != null && !targetPlaces.isEmpty()) {
+            return parseNaverCoordinate(targetPlaces.get(0).getMapy());
+        }
+
+        return null;
+    }
+
+    private Double resolveWeatherLongitude(Place selectedPlace,
+                                           List<NearbyPlaceDto> targetPlaces) {
+
+        if (selectedPlace != null && selectedPlace.getLongitude() != null) {
+            return selectedPlace.getLongitude();
+        }
+
+        if (targetPlaces != null && !targetPlaces.isEmpty()) {
+            return parseNaverCoordinate(targetPlaces.get(0).getMapx());
+        }
+
+        return null;
+    }
+
+    private Double parseNaverCoordinate(String coordinate) {
+        if (coordinate == null || coordinate.isBlank()) {
+            return null;
+        }
+
+        try {
+            double value = Double.parseDouble(coordinate.trim());
+
+            if (Math.abs(value) > 1000) {
+                return value / 10000000.0;
+            }
+
+            return value;
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    private List<NearbyPlaceDto> searchNearbyPlaces(String nearbySearchBaseQuery,
+                                                    String regionName,
+                                                    String category,
+                                                    int limit) {
+
+        List<NearbyPlaceDto> result = new ArrayList<>();
+        List<String> queries = new ArrayList<>();
+
+        addSearchQuery(queries, nearbySearchBaseQuery + " " + category);
+
+        if ("식당".equals(category)) {
+            addSearchQuery(queries, nearbySearchBaseQuery + " 맛집");
+            addSearchQuery(queries, buildRegionQuery(regionName, "맛집"));
+        }
+
+        addSearchQuery(queries, buildRegionQuery(regionName, category));
+
+        for (String query : queries) {
+            List<NearbyPlaceDto> searched =
+                    naverLocalSearchService.searchPlacesByKeyword(query);
+
+            addUniquePlaces(result, searched, limit);
+
+            if (result.size() >= limit) {
+                break;
+            }
         }
 
         return result;
+    }
+
+    private String buildRegionQuery(String regionName, String category) {
+        String safeRegionName = regionName == null ? "" : regionName.trim();
+        String safeCategory = category == null ? "" : category.trim();
+
+        if (safeRegionName.isBlank()) {
+            return "강원특별자치도 " + safeCategory;
+        }
+
+        return "강원특별자치도 " + safeRegionName + " " + safeCategory;
+    }
+
+    private void keepNearbyPlaces(List<NearbyPlaceDto> places,
+                                  double maxDistanceKm,
+                                  int minKeepCount) {
+
+        if (places == null || places.isEmpty()) {
+            return;
+        }
+
+        List<NearbyPlaceDto> nearbyPlaces = places.stream()
+                .filter(place -> place.getDistanceKm() <= maxDistanceKm)
+                .toList();
+
+        if (nearbyPlaces.size() >= minKeepCount) {
+            places.clear();
+            places.addAll(nearbyPlaces);
+            return;
+        }
+
+        int keepCount = Math.min(minKeepCount, places.size());
+        List<NearbyPlaceDto> closestPlaces = new ArrayList<>(places.subList(0, keepCount));
+        places.clear();
+        places.addAll(closestPlaces);
+    }
+
+    private void keepRegionPlaces(List<NearbyPlaceDto> places,
+                                  String regionName,
+                                  int minKeepCount) {
+
+        if (places == null || places.isEmpty() || regionName == null || regionName.isBlank()) {
+            return;
+        }
+
+        List<NearbyPlaceDto> regionPlaces = places.stream()
+                .filter(place -> matchesRegion(place, regionName))
+                .toList();
+
+        if (regionPlaces.size() >= minKeepCount) {
+            places.clear();
+            places.addAll(regionPlaces);
+        }
     }
 
     private void addUniquePlaces(List<NearbyPlaceDto> targetList,
@@ -518,6 +956,71 @@ public class TravelController {
 
         return a.trim().equals(b.trim());
     }
+
+    private String cleanPlaceTitle(String title) {
+        if (title == null) {
+            return "";
+        }
+
+        return title
+                .replaceAll("<[^>]*>", "")
+                .replace("&amp;", "&")
+                .trim();
+    }
+
+    private boolean matchesRegion(NearbyPlaceDto place, String regionName) {
+        if (place == null || regionName == null || regionName.isBlank()) {
+            return false;
+        }
+
+        String addressText = joinText(place.getAddress(), place.getRoadAddress());
+        String normalizedAddress = normalizeSearchText(addressText);
+        String normalizedRegion = normalizeSearchText(regionName);
+
+        if (normalizedRegion.endsWith("시")
+                || normalizedRegion.endsWith("군")
+                || normalizedRegion.endsWith("구")) {
+            normalizedRegion = normalizedRegion.substring(0, normalizedRegion.length() - 1);
+        }
+
+        return !normalizedRegion.isBlank()
+                && normalizedAddress.contains(normalizedRegion);
+    }
+
+    private String simplifyPlaceName(String placeName) {
+        if (placeName == null) {
+            return "";
+        }
+
+        return cleanPlaceTitle(placeName)
+                .replace("카페", "")
+                .replace("관광지", "")
+                .replace("맛집", "")
+                .trim();
+    }
+
+    private String normalizeSearchText(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        return cleanPlaceTitle(text)
+                .replaceAll("\\s+", "")
+                .toLowerCase();
+    }
+
+    private String joinText(String... values) {
+        StringBuilder sb = new StringBuilder();
+
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                sb.append(value).append(" ");
+            }
+        }
+
+        return sb.toString();
+    }
+
     private List<NearbyPlaceDto> limitList(List<NearbyPlaceDto> list, int limit) {
 
         if (list == null || list.isEmpty()) {

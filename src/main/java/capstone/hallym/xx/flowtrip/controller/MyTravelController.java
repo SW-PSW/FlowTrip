@@ -81,20 +81,7 @@ public class MyTravelController {
 
         model.addAttribute("travelPlan", travelPlan);
         model.addAttribute("courseItems", courseItems);
-        long dayCount = 1;
-
-        if (travelPlan.getStartDate() != null && travelPlan.getEndDate() != null) {
-            dayCount = java.time.temporal.ChronoUnit.DAYS.between(
-                    travelPlan.getStartDate(),
-                    travelPlan.getEndDate()
-            ) + 1;
-        }
-
-        if (dayCount < 1) {
-            dayCount = 1;
-        }
-
-        model.addAttribute("dayCount", dayCount);
+        model.addAttribute("dayCount", calculateDayCount(travelPlan, courseItems));
         model.addAttribute("naverMapClientId", naverMapClientId);
 
         return "my-travel-detail";
@@ -131,5 +118,31 @@ public class MyTravelController {
         travelPlanRepository.delete(travelPlan);
 
         return "redirect:/my-travel";
+    }
+
+    private long calculateDayCount(TravelPlan travelPlan,
+                                   List<TravelCourseItem> courseItems) {
+        long dayCount = 1;
+
+        if (travelPlan.getStartDate() != null && travelPlan.getEndDate() != null) {
+            dayCount = java.time.temporal.ChronoUnit.DAYS.between(
+                    travelPlan.getStartDate(),
+                    travelPlan.getEndDate()
+            ) + 1;
+        }
+
+        if (dayCount < 1) {
+            dayCount = 1;
+        }
+
+        if (courseItems != null) {
+            for (TravelCourseItem item : courseItems) {
+                if (item.getDayIndex() != null && item.getDayIndex() > dayCount) {
+                    dayCount = item.getDayIndex();
+                }
+            }
+        }
+
+        return dayCount;
     }
 }

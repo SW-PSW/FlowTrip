@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import capstone.hallym.xx.flowtrip.dto.CongestionAnalysisDto;
 import capstone.hallym.xx.flowtrip.dto.RecommendationResultDto;
 import capstone.hallym.xx.flowtrip.dto.TravelRequestDto;
+import capstone.hallym.xx.flowtrip.dto.WeatherForecastDto;
 import capstone.hallym.xx.flowtrip.entity.Place;
 
 @Service
@@ -15,7 +16,8 @@ public class CongestionAnalysisService {
 
     public CongestionAnalysisDto analyze(TravelRequestDto requestDto,
                                          RecommendationResultDto recommendationResult,
-                                         Place selectedPlace) {
+                                         Place selectedPlace,
+                                         WeatherForecastDto weatherForecast) {
 
         CongestionAnalysisDto result = new CongestionAnalysisDto();
 
@@ -52,7 +54,18 @@ public class CongestionAnalysisService {
             score += 10;
         }
 
-        score = Math.min(score, 100);
+        int weatherCrowdImpactScore = 0;
+        String weatherCrowdImpactReason = "날씨 예보가 없어 혼잡도 보정에는 반영하지 않았습니다.";
+
+        if (weatherForecast != null) {
+            weatherCrowdImpactScore = weatherForecast.getCrowdImpactScore() == null
+                    ? 0
+                    : weatherForecast.getCrowdImpactScore();
+            weatherCrowdImpactReason = weatherForecast.getCrowdImpactReason();
+            score += weatherCrowdImpactScore;
+        }
+
+        score = Math.max(0, Math.min(score, 100));
 
         String level = toLevel(score);
 
@@ -64,7 +77,10 @@ public class CongestionAnalysisService {
         result.setWeekendSignal(buildWeekendSignal(weekend));
         result.setSeasonSignal(buildSeasonSignal(peakSeason, selectedPlace));
         result.setDemandSignal(buildDemandSignal(popularPlace, selectedPlace));
-        result.setWeatherSignal(buildWeatherSignal(selectedPlace));
+        result.setWeatherSignal(buildWeatherSignal(selectedPlace, weatherForecast));
+        result.setWeatherSummary(weatherForecast == null ? null : weatherForecast.getWeatherSummary());
+        result.setWeatherCrowdImpactReason(weatherCrowdImpactReason);
+        result.setWeatherCrowdImpactScore(weatherCrowdImpactScore);
         result.setRecommendedVisitTime(buildRecommendedVisitTime(level, outdoorPlace));
         result.setAlternativeGuide(buildAlternativeGuide(level, recommendationResult));
 
@@ -76,7 +92,9 @@ public class CongestionAnalysisService {
                 popularPlace,
                 outdoorPlace,
                 seaOrLakePlace,
-                avoidCrowded
+                avoidCrowded,
+                weatherCrowdImpactScore,
+                weatherCrowdImpactReason
         ));
 
         return result;
@@ -217,7 +235,11 @@ public class CongestionAnalysisService {
         return "대형 대표 관광지보다는 상대적으로 분산 방문이 가능한 장소로 판단됩니다.";
     }
 
-    private String buildWeatherSignal(Place place) {
+    private String buildWeatherSignal(Place place, WeatherForecastDto weatherForecast) {
+        if (weatherForecast != null && weatherForecast.getWeatherSummary() != null) {
+            return weatherForecast.getWeatherSummary();
+        }
+
         if (place == null) {
             return "장소 특성 기반 날씨 영향 정보가 부족합니다.";
         }
@@ -276,7 +298,9 @@ public class CongestionAnalysisService {
                                boolean popularPlace,
                                boolean outdoorPlace,
                                boolean seaOrLakePlace,
-                               boolean avoidCrowded) {
+                               boolean avoidCrowded,
+                               int weatherCrowdImpactScore,
+                               String weatherCrowdImpactReason) {
 
         StringBuilder sb = new StringBuilder();
 
@@ -305,6 +329,15 @@ public class CongestionAnalysisService {
 
         if (avoidCrowded) {
             sb.append("사용자가 혼잡 회피를 선호하므로 혼잡 위험을 보수적으로 반영했습니다. ");
+        }
+
+        if (weatherCrowdImpactScore != 0 || (weatherCrowdImpactReason != null && !weatherCrowdImpactReason.isBlank())) {
+            sb.append("일기예보 보정(")
+                    .append(weatherCrowdImpactScore >= 0 ? "+" : "")
+                    .append(weatherCrowdImpactScore)
+                    .append("점): ")
+                    .append(weatherCrowdImpactReason)
+                    .append(" ");
         }
 
         if (sb.length() == 0) {

@@ -11,6 +11,9 @@ public class CongestionAnalysisDto {
     private String weekendSignal;
     private String weatherSignal;
     private String alternativeGuide;
+    private String weatherSummary;
+    private String weatherCrowdImpactReason;
+    private int weatherCrowdImpactScore;
 
     private boolean weekend;
     private boolean peakSeason;
@@ -88,6 +91,30 @@ public class CongestionAnalysisDto {
 
     public void setAlternativeGuide(String alternativeGuide) {
         this.alternativeGuide = alternativeGuide;
+    }
+
+    public String getWeatherSummary() {
+        return weatherSummary;
+    }
+
+    public void setWeatherSummary(String weatherSummary) {
+        this.weatherSummary = weatherSummary;
+    }
+
+    public String getWeatherCrowdImpactReason() {
+        return weatherCrowdImpactReason;
+    }
+
+    public void setWeatherCrowdImpactReason(String weatherCrowdImpactReason) {
+        this.weatherCrowdImpactReason = weatherCrowdImpactReason;
+    }
+
+    public int getWeatherCrowdImpactScore() {
+        return weatherCrowdImpactScore;
+    }
+
+    public void setWeatherCrowdImpactScore(int weatherCrowdImpactScore) {
+        this.weatherCrowdImpactScore = weatherCrowdImpactScore;
     }
 
     public boolean isWeekend() {

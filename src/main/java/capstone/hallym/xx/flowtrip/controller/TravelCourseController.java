@@ -79,7 +79,7 @@ public class TravelCourseController {
             TravelCourseItem item = new TravelCourseItem();
 
             item.setTravelPlan(savedPlan);
-            item.setPlaceName(itemDto.getPlaceName());
+            item.setPlaceName(cleanPlaceTitle(itemDto.getPlaceName()));
             item.setCategory(itemDto.getCategory());
             item.setAddress(itemDto.getAddress());
             item.setMapx(itemDto.getMapx());
@@ -120,5 +120,16 @@ public class TravelCourseController {
                 .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
         return travelPlanRepository.findByUserOrderByCreatedAtDesc(user);
+    }
+
+    private String cleanPlaceTitle(String title) {
+        if (title == null) {
+            return "";
+        }
+
+        return title
+                .replaceAll("<[^>]*>", "")
+                .replace("&amp;", "&")
+                .trim();
     }
 }

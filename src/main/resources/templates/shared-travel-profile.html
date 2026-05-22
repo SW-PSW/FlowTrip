@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>FlowTrip - 여행자 프로필</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <style>
+        * { box-sizing: border-box; }
+
+        :root {
+            --glass-dark: rgba(12, 18, 18, 0.54);
+            --line: rgba(255, 255, 255, 0.14);
+            --text: #f8fafc;
+            --muted: rgba(248, 250, 252, 0.68);
+            --dim: rgba(248, 250, 252, 0.45);
+            --gold: #f6c65b;
+            --green: #9be7c7;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Pretendard", "Noto Sans KR", Arial, sans-serif;
+            color: var(--text);
+            background:
+                    linear-gradient(90deg, rgba(3, 9, 11, 0.82), rgba(3, 9, 11, 0.34), rgba(3, 9, 11, 0.62)),
+                    url("/images/main-bg.jpg") center / cover no-repeat fixed;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            background:
+                    radial-gradient(circle at 75% 20%, rgba(246, 198, 91, 0.16), transparent 32%),
+                    radial-gradient(circle at 18% 20%, rgba(67, 154, 181, 0.20), transparent 34%),
+                    rgba(0, 0, 0, 0.12);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        a { color: inherit; text-decoration: none; }
+
+        .app {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 254px 1fr;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            padding: 28px 0;
+            background: rgba(7, 18, 22, 0.52);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+        }
+
+        .brand {
+            padding: 0 30px 32px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .brand-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 16px;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.12);
+            font-size: 24px;
+        }
+
+        .brand-title {
+            font-size: 26px;
+            font-weight: 900;
+            letter-spacing: -0.7px;
+        }
+
+        .brand-sub {
+            margin-top: 3px;
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        .side-menu {
+            padding: 22px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .side-item {
+            position: relative;
+            height: 74px;
+            padding: 0 28px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            color: var(--dim);
+            font-size: 17px;
+            font-weight: 700;
+        }
+
+        .side-item.active {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .side-item.active::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--gold);
+            box-shadow: 0 0 18px rgba(246, 198, 91, 0.7);
+        }
+
+        .side-icon {
+            width: 28px;
+            text-align: center;
+            font-size: 25px;
+        }
+
+        .content {
+            padding: 44px 56px;
+        }
+
+        .page-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+
+        .eyebrow {
+            color: var(--gold);
+            font-size: 14px;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 38px;
+            letter-spacing: -0.9px;
+        }
+
+        .desc {
+            margin: 12px 0 0;
+            color: var(--muted);
+            font-size: 16px;
+            line-height: 1.6;
+            font-weight: 600;
+        }
+
+        .outline-link {
+            height: 46px;
+            padding: 0 18px;
+            border-radius: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            background: rgba(255, 255, 255, 0.07);
+            font-size: 14px;
+            font-weight: 950;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: minmax(320px, 0.45fr) minmax(600px, 0.95fr);
+            gap: 28px;
+            align-items: start;
+        }
+
+        .glass-panel {
+            border-radius: 28px;
+            padding: 26px;
+            background: var(--glass-dark);
+            border: 1px solid var(--line);
+            backdrop-filter: blur(22px);
+            -webkit-backdrop-filter: blur(22px);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.32);
+        }
+
+        .section-title {
+            margin: 0 0 18px;
+            font-size: 24px;
+            font-weight: 950;
+        }
+
+        .profile-card {
+            display: grid;
+            gap: 18px;
+        }
+
+        .avatar {
+            width: 76px;
+            height: 76px;
+            border-radius: 24px;
+            display: grid;
+            place-items: center;
+            color: #1e1606;
+            background: linear-gradient(135deg, #f8d982, #dca73c);
+            font-size: 32px;
+            font-weight: 950;
+        }
+
+        .profile-name {
+            margin: 0;
+            font-size: 30px;
+            font-weight: 950;
+        }
+
+        .profile-meta {
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.6;
+        }
+
+        .stat-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .stat-box {
+            padding: 16px;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 950;
+            color: var(--gold);
+        }
+
+        .stat-label {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(190px, 1fr));
+            gap: 16px;
+        }
+
+        .theme-badge {
+            min-height: 170px;
+            border-radius: 24px;
+            padding: 18px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            opacity: 0.48;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .theme-badge.earned {
+            opacity: 1;
+            background: linear-gradient(145deg, rgba(246, 198, 91, 0.18), rgba(155, 231, 199, 0.10));
+            border-color: rgba(246, 198, 91, 0.34);
+            box-shadow: 0 18px 42px rgba(246, 198, 91, 0.12);
+        }
+
+        .badge-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .badge-city {
+            color: var(--gold);
+            font-size: 13px;
+            font-weight: 950;
+        }
+
+        .badge-state {
+            min-height: 28px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            color: var(--text);
+            background: rgba(255,255,255,0.1);
+            font-size: 11px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
+        .theme-badge.earned .badge-state {
+            color: #1e1606;
+            background: var(--gold);
+        }
+
+        .badge-name {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 950;
+            line-height: 1.35;
+        }
+
+        .badge-theme {
+            color: var(--green);
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .badge-condition {
+            margin-top: auto;
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+            font-weight: 700;
+        }
+
+        .post-grid {
+            margin-top: 28px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(260px, 1fr));
+            gap: 18px;
+        }
+
+        .posts-panel {
+            margin-top: 28px;
+        }
+
+        .post-card {
+            min-height: 220px;
+            border-radius: 24px;
+            padding: 22px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            flex-direction: column;
+            transition: 0.18s ease;
+        }
+
+        .post-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(246, 198, 91, 0.28);
+        }
+
+        .post-title {
+            margin: 0 0 14px;
+            font-size: 20px;
+            font-weight: 950;
+            line-height: 1.35;
+        }
+
+        .post-meta {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 750;
+            line-height: 1.6;
+        }
+
+        .post-summary {
+            margin-top: auto;
+            padding-top: 16px;
+            color: var(--dim);
+            font-size: 13px;
+            line-height: 1.55;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .empty {
+            border-radius: 22px;
+            padding: 28px;
+            background: rgba(255,255,255,0.05);
+            border: 1px dashed rgba(255,255,255,0.2);
+            color: var(--muted);
+            line-height: 1.7;
+            text-align: center;
+        }
+
+        @media (max-width: 1280px) {
+            .app { grid-template-columns: 220px 1fr; }
+            .content { padding: 34px; }
+            .profile-grid { grid-template-columns: 1fr; }
+            .badge-grid { grid-template-columns: repeat(2, minmax(190px, 1fr)); }
+        }
+
+        @media (max-width: 760px) {
+            .app { display: block; }
+            .sidebar { min-height: auto; }
+            .side-menu { display: none; }
+            .content { padding: 24px; }
+            .page-head { display: block; }
+            .outline-link { margin-top: 20px; }
+            .badge-grid,
+            .post-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">✦</div>
+            <div>
+                <div class="brand-title">FlowTrip</div>
+                <div class="brand-sub">AI 여행 추천 서비스</div>
+            </div>
+        </div>
+
+        <nav class="side-menu">
+            <a href="/travel-result/latest" class="side-item">
+                <span class="side-icon">✦</span>
+                <span>최근 추천</span>
+            </a>
+            <a href="/my-travel" class="side-item">
+                <span class="side-icon">♡</span>
+                <span>나의 여행</span>
+            </a>
+            <a href="/shared-travel" class="side-item active">
+                <span class="side-icon">☷</span>
+                <span>공유 게시판</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="content">
+        <div class="page-head">
+            <div>
+                <div class="eyebrow">TRAVELER PROFILE</div>
+                <h1 th:text="${displayName}">
+                    여행자
+                </h1>
+                <p class="desc">
+                    이 여행자가 공유한 코스와 강원 테마 뱃지 컬렉션입니다.
+                </p>
+            </div>
+
+            <a class="outline-link" href="/shared-travel">공유 게시판으로</a>
+        </div>
+
+        <div class="profile-grid">
+            <section class="glass-panel profile-card">
+                <div class="avatar"
+                     th:text="${avatarInitial}">
+                    F
+                </div>
+
+                <div>
+                    <h2 class="profile-name"
+                        th:text="${displayName}">
+                        여행자
+                    </h2>
+                    <div class="profile-meta">
+                        FlowTrip에서 공유한 여행 코스 기준으로 뱃지가 계산됩니다.
+                    </div>
+                </div>
+
+                <div class="stat-row">
+                    <div class="stat-box">
+                        <div class="stat-value" th:text="${posts != null ? posts.size() : 0}">0</div>
+                        <div class="stat-label">공유 글</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">
+                            <span th:text="${earnedBadgeCount}">0</span>/<span th:text="${totalBadgeCount}">0</span>
+                        </div>
+                        <div class="stat-label">획득 뱃지</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="glass-panel">
+                <h2 class="section-title">강원 테마 뱃지</h2>
+
+                <div class="badge-grid">
+                    <article th:each="badge : ${badges}"
+                             th:classappend="${badge.earned} ? ' earned' : ''"
+                             class="theme-badge">
+                        <div class="badge-top">
+                            <span class="badge-city" th:text="${badge.city}">강릉</span>
+                            <span class="badge-state" th:text="${badge.earned} ? '획득' : '미획득'">획득</span>
+                        </div>
+                        <h3 class="badge-name" th:text="${badge.name}">커피 소환사</h3>
+                        <div class="badge-theme" th:text="${badge.theme}">바다 감성</div>
+                        <div class="badge-condition" th:text="${badge.condition}">
+                            안목해변 커피코스 방문 완료
+                        </div>
+                    </article>
+                </div>
+            </section>
+        </div>
+
+        <section class="glass-panel posts-panel">
+            <h2 class="section-title">작성한 공유 글</h2>
+
+            <div th:if="${posts == null or posts.isEmpty()}" class="empty">
+                아직 작성한 공유 글이 없습니다.
+            </div>
+
+            <div th:if="${posts != null and !posts.isEmpty()}" class="post-grid">
+                <a class="post-card"
+                   th:each="post : ${posts}"
+                   th:href="@{/shared-travel/{id}(id=${post.id})}">
+                    <h3 class="post-title" th:text="${post.title}">공유글 제목</h3>
+                    <div class="post-meta">
+                        <div>
+                            작성일:
+                            <span th:text="${#temporals.format(post.createdAt, 'yyyy.MM.dd')}">2026.05.22</span>
+                        </div>
+                        <div>
+                            대표 장소:
+                            <span th:text="${post.travelPlan != null and post.travelPlan.recommendedPlaceName != null and post.travelPlan.recommendedPlaceName != '' ? post.travelPlan.recommendedPlaceName : '-'}"></span>
+                        </div>
+                        <div>
+                            조회수:
+                            <span th:text="${post.viewCount}">0</span>
+                        </div>
+                    </div>
+                    <div class="post-summary" th:text="${post.content}">
+                        공유글 내용
+                    </div>
+                </a>
+            </div>
+        </section>
+    </main>
+</div>
+
+</body>
+</html>

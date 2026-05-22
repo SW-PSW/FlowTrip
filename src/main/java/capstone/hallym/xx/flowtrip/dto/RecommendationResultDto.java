@@ -57,6 +57,7 @@ public class RecommendationResultDto {
         this.weekendSignal = analysis.getWeekendSignal();
         this.weatherSignal = analysis.getWeatherSignal();
         this.alternativeGuide = analysis.getAlternativeGuide();
+        this.weatherAdvice = analysis.getWeatherSummary();
 
         this.weekend = analysis.isWeekend();
         this.peakSeason = analysis.isPeakSeason();

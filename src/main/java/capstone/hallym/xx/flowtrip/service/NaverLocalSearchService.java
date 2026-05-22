@@ -31,6 +31,7 @@ public class NaverLocalSearchService {
 
     private static final int NAVER_LOCAL_MAX_DISPLAY = 5;
     private static final int NAVER_LOCAL_MAX_PAGE = 1;
+    private long lastRequestAt = 0L;
 
     public String buildSearchBaseQuery(String regionName, String placeName) {
         String safeRegionName = nullSafe(regionName).trim();
@@ -41,18 +42,17 @@ public class NaverLocalSearchService {
         }
 
         if (safeRegionName.isBlank()) {
-            return safePlaceName + " 관광지";
+            return safePlaceName;
         }
 
         return "강원특별자치도 "
                 + safeRegionName
                 + " "
-                + safePlaceName
-                + " 관광지";
+                + safePlaceName;
     }
 
     public List<NearbyPlaceDto> searchTargetPlace(String baseQuery) {
-        return searchLocal(baseQuery, 1);
+        return searchLocal(baseQuery, 5);
     }
 
     public List<NearbyPlaceDto> searchRestaurantsNear(String baseQuery) {
@@ -171,6 +171,7 @@ public class NaverLocalSearchService {
         ResponseEntity<Map> response;
 
         try {
+            waitForRateLimit();
             response = restTemplate.exchange(
                     URI.create(url),
                     HttpMethod.GET,
@@ -219,6 +220,21 @@ public class NaverLocalSearchService {
         }
 
         return result;
+    }
+
+    private synchronized void waitForRateLimit() {
+        long now = System.currentTimeMillis();
+        long diff = now - lastRequestAt;
+
+        if (diff < 180) {
+            try {
+                Thread.sleep(180 - diff);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        lastRequestAt = System.currentTimeMillis();
     }
 
     private boolean containsSamePlace(List<NearbyPlaceDto> places, NearbyPlaceDto target) {

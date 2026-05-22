@@ -14,4 +14,8 @@ public interface TravelCourseItemRepository extends JpaRepository<TravelCourseIt
     List<TravelCourseItem> findByTravelPlanIdOrderByCourseOrderAsc(Long travelPlanId);
 
     List<TravelCourseItem> findByTravelPlanIdOrderByDayIndexAscCourseOrderAsc(Long travelPlanId);
+
+    long countByPlaceName(String placeName);
+
+    long countByPlaceNameContaining(String placeName);
 }

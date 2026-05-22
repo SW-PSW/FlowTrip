@@ -462,6 +462,14 @@
             white-space: nowrap;
         }
 
+        .saved-count {
+            margin: -4px 0 2px;
+            color: rgba(245, 244, 239, 0.76);
+            font-size: 12px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
         .mini-btn {
             width: 94px;
             height: 38px;
@@ -557,6 +565,27 @@
             padding: 26px;
             height: 470px;
             flex-shrink: 0;
+        }
+
+        .weather-card {
+            padding: 22px 24px;
+            flex-shrink: 0;
+        }
+
+        .weather-main {
+            margin: 0;
+            color: var(--text);
+            font-size: 17px;
+            font-weight: 900;
+            line-height: 1.5;
+        }
+
+        .weather-sub {
+            margin: 10px 0 0;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.55;
         }
 
         .section-head {
@@ -1119,6 +1148,7 @@
                         </div>
                         <div class="place-actions">
                             <p class="distance-text"><span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.00</span>km</p>
+                            <p class="saved-count">담은 수 <span th:text="${place.savedCount}">0</span></p>
                             <button type="button" class="mini-btn primary" th:attr="data-place-name=${place.title}" onclick="loadPlaceDetail(this); event.stopPropagation();">리뷰 보기</button>
                             <button type="button" class="mini-btn" onclick="focusPlaceFromCard(this); event.stopPropagation();">⌖ 지도 보기</button>
                             <button type="button" class="mini-btn course" onclick="addToCourse(this); event.stopPropagation();">+ 일정</button>
@@ -1144,6 +1174,7 @@
                         </div>
                         <div class="place-actions">
                             <p class="distance-text"><span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.00</span>km</p>
+                            <p class="saved-count">담은 수 <span th:text="${place.savedCount}">0</span></p>
                             <button type="button" class="mini-btn primary" th:attr="data-place-name=${place.title}" onclick="loadPlaceDetail(this); event.stopPropagation();">리뷰 보기</button>
                             <button type="button" class="mini-btn" onclick="focusPlaceFromCard(this); event.stopPropagation();">⌖ 지도 보기</button>
                             <button type="button" class="mini-btn course" onclick="addToCourse(this); event.stopPropagation();">+ 일정</button>
@@ -1169,6 +1200,7 @@
                         </div>
                         <div class="place-actions">
                             <p class="distance-text"><span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.00</span>km</p>
+                            <p class="saved-count">담은 수 <span th:text="${place.savedCount}">0</span></p>
                             <button type="button" class="mini-btn primary" th:attr="data-place-name=${place.title}" onclick="loadPlaceDetail(this); event.stopPropagation();">리뷰 보기</button>
                             <button type="button" class="mini-btn" onclick="focusPlaceFromCard(this); event.stopPropagation();">⌖ 지도 보기</button>
                             <button type="button" class="mini-btn course" onclick="addToCourse(this); event.stopPropagation();">+ 일정</button>
@@ -1194,6 +1226,7 @@
                         </div>
                         <div class="place-actions">
                             <p class="distance-text"><span th:text="${#numbers.formatDecimal(place.distanceKm, 1, 2)}">0.00</span>km</p>
+                            <p class="saved-count">담은 수 <span th:text="${place.savedCount}">0</span></p>
                             <button type="button" class="mini-btn primary" th:attr="data-place-name=${place.title}" onclick="loadPlaceDetail(this); event.stopPropagation();">리뷰 보기</button>
                             <button type="button" class="mini-btn" onclick="focusPlaceFromCard(this); event.stopPropagation();">⌖ 지도 보기</button>
                             <button type="button" class="mini-btn course" onclick="addToCourse(this); event.stopPropagation();">+ 일정</button>
@@ -1205,6 +1238,20 @@
             </section>
 
             <aside class="right-zone">
+                <section class="glass-panel weather-card">
+                    <div class="section-head">
+                        <h2 class="section-title">여행일 날씨</h2>
+                    </div>
+                    <p class="weather-main"
+                       th:text="${weatherForecast != null ? weatherForecast.weatherSummary : '날씨 예보를 불러오지 못했습니다.'}">
+                        날씨 예보
+                    </p>
+                    <p class="weather-sub"
+                       th:text="${weatherForecast != null ? '혼잡도 보정 ' + (weatherForecast.crowdImpactScore >= 0 ? '+' : '') + weatherForecast.crowdImpactScore + '점 · ' + weatherForecast.crowdImpactReason : '날씨 자료가 없어 혼잡도 보정은 적용하지 않았습니다.'}">
+                        혼잡도 보정
+                    </p>
+                </section>
+
                 <section class="glass-panel map-card">
                     <div class="section-head">
                         <h2 class="section-title">주변 지도</h2>
@@ -1300,6 +1347,19 @@
             <div class="info-row">
                 <div class="info-label">날씨 팁</div>
                 <div class="info-value" th:text="${recommendationResult != null ? recommendationResult.weatherAdvice : '-'}">날씨 팁</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">예보 출처</div>
+                <div class="info-value" th:text="${weatherForecast != null ? weatherForecast.sourceName : '-'}">예보 출처</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">날씨 보정</div>
+                <div class="info-value"
+                     th:text="${weatherForecast != null ? (weatherForecast.crowdImpactScore >= 0 ? '+' : '') + weatherForecast.crowdImpactScore + '점 · ' + weatherForecast.crowdImpactReason : '-'}">
+                    날씨 보정
+                </div>
             </div>
 
             <div class="info-row">
@@ -1702,6 +1762,7 @@
                 + '</div>'
                 + '<div class="place-actions">'
                 + '<p class="distance-text">' + safeDistance(place.distanceKm) + 'km</p>'
+                + '<p class="saved-count">담은 수 ' + (place.savedCount || 0) + '</p>'
                 + '<button type="button" class="mini-btn" onclick="drawCustomMarkerFromCard(this); event.stopPropagation();">⌖ 지도 보기</button>'
                 + '<button type="button" class="mini-btn course" onclick="addToCourse(this); event.stopPropagation();">+ 일정</button>'
                 + '</div>';

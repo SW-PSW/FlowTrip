@@ -352,14 +352,19 @@
         </div>
 
         <nav class="side-menu">
-            <a href="/" class="side-item">
+            <a href="/travel-result/latest" class="side-item">
                 <span class="side-icon">✦</span>
-                <span>여행 추천</span>
+                <span>최근 추천</span>
             </a>
 
             <a href="/my-travel" class="side-item active">
                 <span class="side-icon">♡</span>
                 <span>나의 여행</span>
+            </a>
+
+            <a href="/shared-travel" class="side-item">
+                <span class="side-icon">☷</span>
+                <span>공유 게시판</span>
             </a>
         </nav>
     </aside>
@@ -374,7 +379,7 @@
                 </p>
             </div>
 
-            <a class="primary-link" href="/">새 여행 추천 받기</a>
+            <a class="primary-link" href="/travel-result/latest">최근 추천으로 돌아가기</a>
         </div>
 
         <div th:if="${travelPlans == null or travelPlans.isEmpty()}" class="empty">

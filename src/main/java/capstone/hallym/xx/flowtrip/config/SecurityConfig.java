@@ -32,6 +32,7 @@ public class SecurityConfig {
                                 "/js/**",
                                 "/favicon.ico",
                                 "/error",
+                                "/shared-travel/**",
                                 "/api/auth/**",
                                 "/api/mood-groups"
                         ).permitAll()
@@ -39,7 +40,6 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/submit",
                                 "/my-travel/**",
-                                "/shared-travel/**",
                                 "/api/travel-course/**"
                         ).authenticated()
 

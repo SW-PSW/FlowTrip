@@ -12,6 +12,7 @@ public class NearbyPlaceDto {
     private String mapy;
     private double distanceKm;
     private String imageUrl;
+    private long savedCount;
 
     public NearbyPlaceDto() {
     }
@@ -73,5 +74,13 @@ public class NearbyPlaceDto {
 
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
+    }
+
+    public long getSavedCount() {
+        return savedCount;
+    }
+
+    public void setSavedCount(long savedCount) {
+        this.savedCount = savedCount;
     }
 }
