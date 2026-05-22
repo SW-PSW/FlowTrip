@@ -1,5 +1,6 @@
 package capstone.hallym.xx.flowtrip.service;
 
+import org.apache.catalina.User;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -31,5 +32,16 @@ public class UserService {
         user.setRole("ROLE_USER");
 
         userRepository.save(user);
+    }
+    public AppUser login(String username, String password) {
+
+        AppUser user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 아이디입니다."));
+
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 올바르지 않습니다.");
+        }
+
+        return user;
     }
 }

@@ -1,6 +1,8 @@
 package capstone.hallym.xx.flowtrip.entity;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
@@ -16,6 +18,10 @@ public class TravelPlan {
 
     @Column(name = "user_session_id", length = 200)
     private String userSessionId;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private AppUser user;
 
     @Column(name = "title", length = 200)
     private String title;
@@ -52,6 +58,13 @@ public class TravelPlan {
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+    @OneToMany(
+            mappedBy = "travelPlan",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
+    )
+    @OrderBy("courseOrder ASC")
+    private List<TravelCourseItem> courseItems = new ArrayList<>();
 
     public TravelPlan() {
     }
@@ -183,5 +196,20 @@ public class TravelPlan {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+    public AppUser getUser() {
+        return user;
+    }
+
+    public void setUser(AppUser user) {
+        this.user = user;
+    }
+
+    public List<TravelCourseItem> getCourseItems() {
+        return courseItems;
+    }
+
+    public void setCourseItems(List<TravelCourseItem> courseItems) {
+        this.courseItems = courseItems;
     }
 }

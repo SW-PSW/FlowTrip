@@ -409,6 +409,11 @@
                 <span class="side-icon">♡</span>
                 <span>나의 여행</span>
             </a>
+
+            <a href="/shared-travel" class="side-item">
+                <span class="side-icon">☷</span>
+                <span>공유 게시판</span>
+            </a>
         </nav>
     </aside>
 
@@ -423,12 +428,18 @@
                 </h1>
 
                 <p class="desc">
-                    저장한 여행 코스를 지도와 함께 다시 확인할 수 있습니다.
+                    저장한 여행 코스를 지도와 함께 다시 확인하고, 공유 게시판에 등록할 수 있습니다.
                 </p>
             </div>
 
             <div class="head-actions">
                 <a class="outline-link" href="/my-travel">목록으로</a>
+
+                <a class="primary-link"
+                   th:href="@{/my-travel/{id}/share(id=${travelPlan.id})}">
+                    공유하기
+                </a>
+
                 <a class="primary-link" href="/">새 추천 받기</a>
 
                 <form th:action="@{/my-travel/{id}/delete(id=${travelPlan.id})}"
@@ -482,50 +493,18 @@
 
                 <div th:if="${courseItems != null and !courseItems.isEmpty()}">
 
-                    <div class="day-block">
-                        <h3 class="day-title">DAY 1</h3>
+                    <div th:each="day : ${#numbers.sequence(1, dayCount)}"
+                         class="day-block">
 
-                        <div class="course-list">
-                            <div class="course-item"
-                                 th:each="item, stat : ${courseItems}"
-                                 th:if="${item.dayIndex == null or item.dayIndex == 1}"
-                                 th:attr="
-                                 data-title=${item.placeName},
-                                 data-mapx=${item.mapx},
-                                 data-mapy=${item.mapy},
-                                 data-order=${item.courseOrder}
-                                 "
-                                 onclick="focusCourseItem(this)">
-
-                                <div class="course-order" th:text="${item.courseOrder}">1</div>
-
-                                <div class="thumb">
-                                    <img th:if="${item.imageUrl != null and item.imageUrl != ''}"
-                                         th:src="${item.imageUrl}"
-                                         th:alt="${item.placeName}">
-                                    <span th:if="${item.imageUrl == null or item.imageUrl == ''}">▧</span>
-                                </div>
-
-                                <div>
-                                    <div class="place-name" th:text="${item.placeName}">장소명</div>
-                                    <div class="place-meta">
-                                        <span th:text="${item.category != null and item.category != '' ? item.category : '카테고리 정보 없음'}"></span>
-                                        <br>
-                                        <span th:text="${item.address != null and item.address != '' ? item.address : '주소 정보 없음'}"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="day-block"
-                         th:if="${#lists.contains(courseItems.![dayIndex], 2)}">
-                        <h3 class="day-title">DAY 2</h3>
+                        <h3 class="day-title"
+                            th:text="'DAY ' + ${day}">
+                            DAY 1
+                        </h3>
 
                         <div class="course-list">
                             <div class="course-item"
                                  th:each="item : ${courseItems}"
-                                 th:if="${item.dayIndex == 2}"
+                                 th:if="${(item.dayIndex == null and day == 1) or item.dayIndex == day}"
                                  th:attr="
                                  data-title=${item.placeName},
                                  data-mapx=${item.mapx},
@@ -545,6 +524,7 @@
 
                                 <div>
                                     <div class="place-name" th:text="${item.placeName}">장소명</div>
+
                                     <div class="place-meta">
                                         <span th:text="${item.category != null and item.category != '' ? item.category : '카테고리 정보 없음'}"></span>
                                         <br>
@@ -553,6 +533,7 @@
                                 </div>
                             </div>
                         </div>
+
                     </div>
 
                 </div>

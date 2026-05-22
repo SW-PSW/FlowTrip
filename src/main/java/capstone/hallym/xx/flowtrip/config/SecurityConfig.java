@@ -14,37 +14,46 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   AuthenticationSuccessHandler successHandler)
-            throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            AuthenticationSuccessHandler successHandler
+    ) throws Exception {
 
         http
                 .csrf(csrf -> csrf.disable())
+
                 .authorizeHttpRequests(auth -> auth
+
                         .requestMatchers(
                                 "/",
-                                "/login",
-                                "/signup",
+                                "/react/**",
+                                "/images/**",
                                 "/css/**",
                                 "/js/**",
-                                "/images/**",
                                 "/favicon.ico",
-                                "/error"
+                                "/error",
+                                "/api/auth/**",
+                                "/api/mood-groups"
                         ).permitAll()
+
                         .requestMatchers(
                                 "/submit",
                                 "/my-travel/**",
+                                "/shared-travel/**",
                                 "/api/travel-course/**"
                         ).authenticated()
+
                         .anyRequest().permitAll()
                 )
+
                 .formLogin(login -> login
-                        .loginPage("/login")
+                        .loginPage("/react/index.html")
                         .loginProcessingUrl("/login")
                         .successHandler(successHandler)
-                        .failureUrl("/login?error=true")
+                        .failureUrl("/react/index.html?error=true")
                         .permitAll()
                 )
+
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/")
@@ -57,14 +66,20 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationSuccessHandler authenticationSuccessHandler() {
-        return (request, response, authentication) -> response.sendRedirect("/");
+        return (request, response, authentication) ->
+                response.sendRedirect("/react/index.html");
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider(UserDetailsService userDetailsService,
-                                                            PasswordEncoder passwordEncoder) {
-        DaoAuthenticationProvider provider = new DaoAuthenticationProvider(userDetailsService);
+    public DaoAuthenticationProvider authenticationProvider(
+            UserDetailsService userDetailsService,
+            PasswordEncoder passwordEncoder
+    ) {
+        DaoAuthenticationProvider provider =
+                new DaoAuthenticationProvider(userDetailsService);
+
         provider.setPasswordEncoder(passwordEncoder);
+
         return provider;
     }
 

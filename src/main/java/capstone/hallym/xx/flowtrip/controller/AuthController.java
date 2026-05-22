@@ -1,15 +1,15 @@
 package capstone.hallym.xx.flowtrip.controller;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
+import java.util.Map;
+
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import capstone.hallym.xx.flowtrip.dto.SignupRequestDto;
 import capstone.hallym.xx.flowtrip.service.UserService;
-import jakarta.validation.Valid;
 
-@Controller
+@RestController
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final UserService userService;
@@ -18,33 +18,43 @@ public class AuthController {
         this.userService = userService;
     }
 
-    @GetMapping("/login")
-    public String loginPage() {
-        return "login";
-    }
-
-    @GetMapping("/signup")
-    public String signupForm(Model model) {
-        model.addAttribute("signupRequestDto", new SignupRequestDto());
-        return "signup";
-    }
-
     @PostMapping("/signup")
-    public String signup(@Valid SignupRequestDto dto,
-                         BindingResult bindingResult,
-                         Model model) {
-
-        if (bindingResult.hasErrors()) {
-            return "signup";
-        }
-
+    public Map<String, Object> signupApi(@RequestBody SignupRequestDto dto) {
         try {
             userService.signup(dto);
+
+            return Map.of(
+                    "success", true,
+                    "message", "회원가입이 완료되었습니다."
+            );
+
         } catch (IllegalArgumentException e) {
-            model.addAttribute("signupError", e.getMessage());
-            return "signup";
+            return Map.of(
+                    "success", false,
+                    "message", e.getMessage()
+            );
+
+        } catch (Exception e) {
+            return Map.of(
+                    "success", false,
+                    "message", "회원가입 중 오류가 발생했습니다."
+            );
+        }
+    }
+
+    @GetMapping("/me")
+    public Map<String, Object> me(Authentication authentication) {
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            return Map.of(
+                    "authenticated", false
+            );
         }
 
-        return "redirect:/login?signupSuccess=true";
+        return Map.of(
+                "authenticated", true,
+                "username", authentication.getName()
+        );
     }
 }

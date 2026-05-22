@@ -3,15 +3,17 @@ package capstone.hallym.xx.flowtrip.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import capstone.hallym.xx.flowtrip.dto.TravelCourseItemRequestDto;
 import capstone.hallym.xx.flowtrip.dto.TravelCourseSaveRequestDto;
+import capstone.hallym.xx.flowtrip.entity.AppUser;
 import capstone.hallym.xx.flowtrip.entity.TravelCourseItem;
 import capstone.hallym.xx.flowtrip.entity.TravelPlan;
 import capstone.hallym.xx.flowtrip.repository.TravelCourseItemRepository;
 import capstone.hallym.xx.flowtrip.repository.TravelPlanRepository;
-import jakarta.servlet.http.HttpSession;
+import capstone.hallym.xx.flowtrip.repository.UserRepository;
 
 @RestController
 @RequestMapping("/api/travel-course")
@@ -19,16 +21,26 @@ public class TravelCourseController {
 
     private final TravelPlanRepository travelPlanRepository;
     private final TravelCourseItemRepository travelCourseItemRepository;
+    private final UserRepository userRepository;
 
     public TravelCourseController(TravelPlanRepository travelPlanRepository,
-                                  TravelCourseItemRepository travelCourseItemRepository) {
+                                  TravelCourseItemRepository travelCourseItemRepository,
+                                  UserRepository userRepository) {
         this.travelPlanRepository = travelPlanRepository;
         this.travelCourseItemRepository = travelCourseItemRepository;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/save")
     public Map<String, Object> saveCourse(@RequestBody TravelCourseSaveRequestDto request,
-                                          HttpSession session) {
+                                          Authentication authentication) {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return Map.of(
+                    "success", false,
+                    "message", "로그인이 필요합니다."
+            );
+        }
 
         if (request.getItems() == null || request.getItems().isEmpty()) {
             return Map.of(
@@ -37,11 +49,13 @@ public class TravelCourseController {
             );
         }
 
-        String sessionId = session.getId();
+        AppUser user = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
 
         TravelPlan plan = new TravelPlan();
 
-        plan.setUserSessionId(sessionId);
+        plan.setUser(user);
+
         plan.setTitle(
                 request.getTitle() == null || request.getTitle().isBlank()
                         ? "나의 FlowTrip 여행"
@@ -71,8 +85,16 @@ public class TravelCourseController {
             item.setMapx(itemDto.getMapx());
             item.setMapy(itemDto.getMapy());
             item.setImageUrl(itemDto.getImageUrl());
-            item.setCourseOrder(itemDto.getCourseOrder() == null ? order : itemDto.getCourseOrder());
-            item.setDayIndex(itemDto.getDayIndex() == null ? 1 : itemDto.getDayIndex());
+            item.setCourseOrder(
+                    itemDto.getCourseOrder() == null
+                            ? order
+                            : itemDto.getCourseOrder()
+            );
+            item.setDayIndex(
+                    itemDto.getDayIndex() == null
+                            ? 1
+                            : itemDto.getDayIndex()
+            );
             item.setMemo(itemDto.getMemo());
 
             travelCourseItemRepository.save(item);
@@ -88,7 +110,15 @@ public class TravelCourseController {
     }
 
     @GetMapping("/my")
-    public List<TravelPlan> getMyTravelPlans(HttpSession session) {
-        return travelPlanRepository.findByUserSessionIdOrderByCreatedAtDesc(session.getId());
+    public List<TravelPlan> getMyTravelPlans(Authentication authentication) {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return List.of();
+        }
+
+        AppUser user = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+        return travelPlanRepository.findByUserOrderByCreatedAtDesc(user);
     }
 }

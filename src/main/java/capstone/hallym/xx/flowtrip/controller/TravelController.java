@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -58,12 +59,16 @@ public class TravelController {
         this.naverImageSearchService = naverImageSearchService;
         this.congestionAnalysisService = congestionAnalysisService;
     }
+    
+    @GetMapping("/api/mood-groups")
+    @ResponseBody
+    public List<String> getMoodGroups() {
+        return themeService.getMoodGroups();
+    }
 
     @GetMapping("/")
-    public String showForm(Model model) {
-        model.addAttribute("travelRequestDto", new TravelRequestDto());
-        model.addAttribute("moodGroups", themeService.getMoodGroups());
-        return "travel-form";
+    public String showForm() {
+        return "redirect:/react/index.html";
     }
 
     @PostMapping("/submit")
@@ -201,6 +206,19 @@ public class TravelController {
 		   naverLocalSearchService.searchTargetPlace(
 		           naverSearchBaseQuery
 		   );
+		if (targetPlaces == null || targetPlaces.isEmpty()) {
+		    System.out.println("대표 장소 검색 실패 → 추천 장소명으로 재검색");
+
+		    if (recommendationResult != null
+		            && recommendationResult.getRecommendedPlaceName() != null
+		            && !recommendationResult.getRecommendedPlaceName().isBlank()) {
+
+		        targetPlaces =
+		                naverLocalSearchService.searchTargetPlace(
+		                        recommendationResult.getRecommendedPlaceName()
+		                );
+		    }
+		}
 		
 		/*
 		* 식당
@@ -328,6 +346,11 @@ public class TravelController {
 			);
 			
 			model.addAttribute("targetPlaces", targetPlaces);
+			
+			model.addAttribute(
+			        "targetPlaceData",
+			        !targetPlaces.isEmpty() ? targetPlaces.get(0) : null
+			);
 			
 			model.addAttribute("restaurants", restaurants);
 			model.addAttribute("cafes", cafes);
