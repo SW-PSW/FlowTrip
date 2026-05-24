@@ -6,6 +6,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.w3c.dom.Document;
@@ -87,6 +89,30 @@ public class WeatherForecastService {
         } catch (Exception e) {
             return fallback;
         }
+    }
+
+    public List<WeatherForecastDto> getForecasts(Double latitude,
+                                                 Double longitude,
+                                                 LocalDate startDate,
+                                                 LocalDate endDate) {
+
+        List<WeatherForecastDto> forecasts = new ArrayList<>();
+
+        if (startDate == null) {
+            return forecasts;
+        }
+
+        LocalDate safeEndDate = endDate == null || endDate.isBefore(startDate)
+                ? startDate
+                : endDate;
+
+        long dayCount = ChronoUnit.DAYS.between(startDate, safeEndDate) + 1;
+
+        for (int i = 0; i < dayCount; i++) {
+            forecasts.add(getForecast(latitude, longitude, startDate.plusDays(i)));
+        }
+
+        return forecasts;
     }
 
     private WeatherForecastDto buildFallbackForecast(LocalDate travelDate) {
@@ -222,14 +248,31 @@ public class WeatherForecastService {
         Integer score = forecast.getCrowdImpactScore();
 
         if (score == null || score == 0) {
-            return "예보상 날씨가 혼잡도에 주는 영향은 크지 않습니다.";
+            return "기상청 예보상 날씨가 혼잡도에 주는 영향은 크지 않습니다.";
+        }
+
+        StringBuilder reason = new StringBuilder("기상청 예보 기준 ");
+        reason.append(forecast.getWeatherCodeDescription());
+
+        if (forecast.getPrecipitationProbability() != null) {
+            reason.append(", 강수확률 ")
+                    .append(forecast.getPrecipitationProbability())
+                    .append("%");
+        }
+
+        if (forecast.getTemperatureMax() != null) {
+            reason.append(", 최고기온 ")
+                    .append(String.format("%.1f", forecast.getTemperatureMax()))
+                    .append("도");
         }
 
         if (score > 0) {
-            return "날씨가 비교적 좋아 야외 방문 수요가 늘 수 있어 혼잡도에 가산했습니다.";
+            reason.append("로 야외 방문 수요가 늘 수 있어 혼잡도에 가산했습니다.");
+            return reason.toString();
         }
 
-        return "비·폭염·한파 등으로 야외 방문 수요가 줄 수 있어 혼잡도에서 감산했습니다.";
+        reason.append("로 야외 방문 수요가 줄 수 있어 혼잡도에서 감산했습니다.");
+        return reason.toString();
     }
 
     private int[] convertToKmaGrid(double latitude, double longitude) {

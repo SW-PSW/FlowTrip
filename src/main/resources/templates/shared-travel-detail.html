@@ -49,7 +49,10 @@
         }
 
         .sidebar {
+            position: sticky;
+            top: 0;
             min-height: 100vh;
+            height: 100vh;
             padding: 28px 0;
             background: rgba(7, 18, 22, 0.52);
             border-right: 1px solid rgba(255, 255, 255, 0.08);
@@ -254,27 +257,28 @@
         .mini-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            min-height: 38px;
-            padding: 7px 10px 7px 7px;
-            border-radius: 999px;
+            justify-content: center;
+            width: 56px;
+            height: 56px;
+            padding: 0;
+            border-radius: 50%;
             color: var(--text);
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(246, 198, 91, 0.24);
-            font-size: 12px;
-            font-weight: 900;
+            transition: transform 0.18s ease, border-color 0.18s ease;
         }
 
-        .mini-badge-mark {
-            width: 25px;
-            height: 25px;
+        .mini-badge:hover {
+            transform: translateY(-3px);
+            border-color: rgba(246, 198, 91, 0.62);
+        }
+
+        .mini-badge-img {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            display: grid;
-            place-items: center;
-            color: #1e1606;
-            background: linear-gradient(135deg, #f8d982, #dca73c);
-            font-size: 12px;
-            font-weight: 950;
+            object-fit: cover;
+            display: block;
         }
 
         .badge-empty {
@@ -371,7 +375,7 @@
 
         @media (max-width: 760px) {
             .app { display: block; }
-            .sidebar { min-height: auto; }
+            .sidebar { position: static; min-height: auto; height: auto; }
             .side-menu { display: none; }
             .content { padding: 24px; }
             .page-head { display: block; }
@@ -482,9 +486,11 @@
                 <div class="earned-badges">
                     <a class="mini-badge"
                        th:each="badge : ${earnedBadges}"
+                       th:title="${badge.name}"
                        th:href="@{/shared-travel/users/{id}(id=${post.user.id})}">
-                        <span class="mini-badge-mark" th:text="${badge.initial}">강</span>
-                        <span th:text="${badge.name}">커피 소환사</span>
+                        <img class="mini-badge-img"
+                             th:src="${badge.imagePath}"
+                             th:alt="${badge.name}">
                     </a>
 
                     <span class="badge-empty"

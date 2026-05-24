@@ -5,6 +5,7 @@ import java.util.List;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -21,6 +22,8 @@ import capstone.hallym.xx.flowtrip.dto.WeatherForecastDto;
 import capstone.hallym.xx.flowtrip.entity.Place;
 import capstone.hallym.xx.flowtrip.repository.PlaceRepository;
 import capstone.hallym.xx.flowtrip.repository.TravelCourseItemRepository;
+import capstone.hallym.xx.flowtrip.repository.UserRepository;
+import capstone.hallym.xx.flowtrip.service.NaverBlogSearchService;
 import capstone.hallym.xx.flowtrip.service.NaverImageSearchService;
 import capstone.hallym.xx.flowtrip.service.NaverLocalSearchService;
 import capstone.hallym.xx.flowtrip.service.OpenAiService;
@@ -45,6 +48,8 @@ public class TravelController {
     private final CongestionAnalysisService congestionAnalysisService;
     private final WeatherForecastService weatherForecastService;
     private final TravelCourseItemRepository travelCourseItemRepository;
+    private final UserRepository userRepository;
+    private final NaverBlogSearchService naverBlogSearchService;
     
     @Value("${naver.map.client-id}")
     private String naverMapClientId;
@@ -57,7 +62,9 @@ public class TravelController {
                             NaverImageSearchService naverImageSearchService,
                             CongestionAnalysisService congestionAnalysisService,
                             WeatherForecastService weatherForecastService,
-                            TravelCourseItemRepository travelCourseItemRepository) {
+                            TravelCourseItemRepository travelCourseItemRepository,
+                            UserRepository userRepository,
+                            NaverBlogSearchService naverBlogSearchService) {
 
         this.themeService = themeService;
         this.recommendationCandidateService = recommendationCandidateService;
@@ -69,6 +76,8 @@ public class TravelController {
         this.congestionAnalysisService = congestionAnalysisService;
         this.weatherForecastService = weatherForecastService;
         this.travelCourseItemRepository = travelCourseItemRepository;
+        this.userRepository = userRepository;
+        this.naverBlogSearchService = naverBlogSearchService;
     }
     
     @GetMapping("/api/mood-groups")
@@ -83,7 +92,9 @@ public class TravelController {
     }
 
     @GetMapping("/travel-result/latest")
-    public String showLatestTravelResult(HttpSession session, Model model) {
+    public String showLatestTravelResult(HttpSession session,
+                                         Model model,
+                                         Authentication authentication) {
 
         Boolean hasLatestTravelResult =
                 (Boolean) session.getAttribute("lastTravelResultExists");
@@ -93,6 +104,8 @@ public class TravelController {
         }
 
         restoreLastTravelResult(session, model);
+        model.addAttribute("currentUserDisplayName", resolveCurrentUserDisplayName(authentication));
+        model.addAttribute("autoOpenAiModal", false);
         return "travel-result";
     }
 
@@ -100,7 +113,8 @@ public class TravelController {
     public String submitForm(@Valid TravelRequestDto dto,
             BindingResult bindingResult,
             Model model,
-            HttpSession session) {
+            HttpSession session,
+            Authentication authentication) {
 
 		if (bindingResult.hasErrors()) {
 		model.addAttribute("moodGroups", themeService.getMoodGroups());
@@ -202,6 +216,7 @@ public class TravelController {
 		*/
 		CongestionAnalysisDto congestionAnalysis = null;
 		WeatherForecastDto weatherForecast = null;
+		List<WeatherForecastDto> weatherForecasts = new ArrayList<>();
 		
 		/*
 		* 네이버 검색
@@ -335,19 +350,46 @@ public class TravelController {
 
 			if (recommendationResult != null) {
 
-			weatherForecast =
-			   weatherForecastService.getForecast(
-			           resolveWeatherLatitude(selectedPlace, targetPlaces),
-			           resolveWeatherLongitude(selectedPlace, targetPlaces),
-			           dto.getStartDate()
+			Double weatherLatitude = resolveWeatherLatitude(selectedPlace, targetPlaces);
+			Double weatherLongitude = resolveWeatherLongitude(selectedPlace, targetPlaces);
+
+			weatherForecasts =
+			   weatherForecastService.getForecasts(
+			           weatherLatitude,
+			           weatherLongitude,
+			           dto.getStartDate(),
+			           dto.getEndDate()
 			   );
+
+			if (!weatherForecasts.isEmpty()) {
+			    weatherForecast = weatherForecasts.get(0);
+			} else {
+			    weatherForecast =
+			       weatherForecastService.getForecast(
+			               weatherLatitude,
+			               weatherLongitude,
+			               dto.getStartDate()
+			       );
+			}
+
+            NearbyPlaceDto targetPlace = targetPlaces == null || targetPlaces.isEmpty()
+                    ? null
+                    : targetPlaces.get(0);
+            String targetPlaceName = targetPlace == null
+                    ? selectedPlaceName
+                    : cleanPlaceTitle(targetPlace.getTitle());
+            int naverReviewResultCount = naverBlogSearchService.countReviewResults(targetPlaceName);
+            long targetSavedCount = countSavedPlace(targetPlaceName);
 			
 			congestionAnalysis =
 			   congestionAnalysisService.analyze(
 			           dto,
 			           recommendationResult,
 			           selectedPlace,
-			           weatherForecast
+			           weatherForecast,
+                       targetPlace,
+                       naverReviewResultCount,
+                       targetSavedCount
 			   );
 			
 			/*
@@ -397,6 +439,15 @@ public class TravelController {
 			"weatherForecast",
 			weatherForecast
 			);
+			model.addAttribute(
+			"weatherForecasts",
+			weatherForecasts
+			);
+			model.addAttribute(
+			"currentUserDisplayName",
+			resolveCurrentUserDisplayName(authentication)
+			);
+			model.addAttribute("autoOpenAiModal", true);
 			fillImages(restaurants);
 			model.addAttribute(
 			"themeCandidates",
@@ -424,6 +475,8 @@ public class TravelController {
 			"naverSearchBaseQuery",
 			naverSearchBaseQuery
 			);
+			model.addAttribute("nearbySearchBaseQuery", buildNearbySearchBaseQuery(targetPlaces, selectedRegionName, selectedPlaceName));
+			model.addAttribute("selectedRegionName", selectedRegionName);
 			
 			model.addAttribute(
 			"naverMapClientId",
@@ -437,13 +490,16 @@ public class TravelController {
 			        recommendationResult,
 			        congestionAnalysis,
 			        weatherForecast,
+			        weatherForecasts,
 			        candidates,
 			        targetPlaces,
 			        restaurants,
 			        cafes,
 			        hotels,
 			        attractions,
-			        naverSearchBaseQuery
+			        naverSearchBaseQuery,
+			        buildNearbySearchBaseQuery(targetPlaces, selectedRegionName, selectedPlaceName),
+			        selectedRegionName
 			);
 			
 			return "travel-result";
@@ -455,13 +511,16 @@ public class TravelController {
                                        RecommendationResultDto recommendationResult,
                                        CongestionAnalysisDto congestionAnalysis,
                                        WeatherForecastDto weatherForecast,
+                                       List<WeatherForecastDto> weatherForecasts,
                                        RecommendationCandidatesDto candidates,
                                        List<NearbyPlaceDto> targetPlaces,
                                        List<NearbyPlaceDto> restaurants,
                                        List<NearbyPlaceDto> cafes,
                                        List<NearbyPlaceDto> hotels,
                                        List<NearbyPlaceDto> attractions,
-                                       String naverSearchBaseQuery) {
+                                       String naverSearchBaseQuery,
+                                       String nearbySearchBaseQuery,
+                                       String selectedRegionName) {
 
         session.setAttribute("lastTravelResultExists", true);
         session.setAttribute("lastTravelRequest", request);
@@ -469,6 +528,7 @@ public class TravelController {
         session.setAttribute("lastRecommendationResult", recommendationResult);
         session.setAttribute("lastCongestionAnalysis", congestionAnalysis);
         session.setAttribute("lastWeatherForecast", weatherForecast);
+        session.setAttribute("lastWeatherForecasts", weatherForecasts);
         session.setAttribute("lastThemeCandidates", candidates == null ? "" : candidates.getThemeCandidatesText());
         session.setAttribute("lastPlaceCandidates", candidates == null ? "" : candidates.getPlaceCandidatesText());
         session.setAttribute("lastTargetPlaces", targetPlaces);
@@ -478,6 +538,8 @@ public class TravelController {
         session.setAttribute("lastHotels", hotels);
         session.setAttribute("lastAttractions", attractions);
         session.setAttribute("lastNaverSearchBaseQuery", naverSearchBaseQuery);
+        session.setAttribute("lastNearbySearchBaseQuery", nearbySearchBaseQuery);
+        session.setAttribute("lastSelectedRegionName", selectedRegionName);
     }
 
     private void restoreLastTravelResult(HttpSession session, Model model) {
@@ -487,6 +549,7 @@ public class TravelController {
         model.addAttribute("recommendationResult", session.getAttribute("lastRecommendationResult"));
         model.addAttribute("congestionAnalysis", session.getAttribute("lastCongestionAnalysis"));
         model.addAttribute("weatherForecast", session.getAttribute("lastWeatherForecast"));
+        model.addAttribute("weatherForecasts", session.getAttribute("lastWeatherForecasts"));
         model.addAttribute("themeCandidates", session.getAttribute("lastThemeCandidates"));
         model.addAttribute("placeCandidates", session.getAttribute("lastPlaceCandidates"));
         model.addAttribute("targetPlaces", session.getAttribute("lastTargetPlaces"));
@@ -496,7 +559,24 @@ public class TravelController {
         model.addAttribute("hotels", session.getAttribute("lastHotels"));
         model.addAttribute("attractions", session.getAttribute("lastAttractions"));
         model.addAttribute("naverSearchBaseQuery", session.getAttribute("lastNaverSearchBaseQuery"));
+        model.addAttribute("nearbySearchBaseQuery", session.getAttribute("lastNearbySearchBaseQuery"));
+        model.addAttribute("selectedRegionName", session.getAttribute("lastSelectedRegionName"));
         model.addAttribute("naverMapClientId", naverMapClientId);
+    }
+
+    private String resolveCurrentUserDisplayName(Authentication authentication) {
+
+        if (authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())) {
+            return "여행자";
+        }
+
+        return userRepository.findByUsername(authentication.getName())
+                .map(user -> user.getNickname() == null || user.getNickname().isBlank()
+                        ? user.getUsername()
+                        : user.getNickname())
+                .orElse(authentication.getName());
     }
 
     private List<NearbyPlaceDto> resolveTargetPlaces(String baseQuery,
@@ -556,18 +636,26 @@ public class TravelController {
                                               String regionName,
                                               String placeName) {
 
-        StringBuilder query = new StringBuilder("강원특별자치도");
+        StringBuilder query = new StringBuilder();
         String normalizedRegionName = regionName == null ? "" : regionName.trim();
 
         if (!normalizedRegionName.isBlank()) {
-            query.append(" ").append(normalizedRegionName);
+            query.append(normalizedRegionName);
         }
 
         String localAreaName = extractLocalAreaName(targetPlaces);
 
         if (!localAreaName.isBlank()
                 && !normalizeSearchText(query.toString()).contains(normalizeSearchText(localAreaName))) {
-            query.append(" ").append(localAreaName);
+            if (!query.isEmpty()) {
+                query.append(" ");
+            }
+
+            query.append(localAreaName);
+        }
+
+        if (query.isEmpty()) {
+            return "강원특별자치도";
         }
 
         return query.toString().trim();
@@ -770,7 +858,12 @@ public class TravelController {
 
         if ("식당".equals(category)) {
             addSearchQuery(queries, nearbySearchBaseQuery + " 맛집");
-            addSearchQuery(queries, buildRegionQuery(regionName, "맛집"));
+        } else if ("카페".equals(category)) {
+            addSearchQuery(queries, nearbySearchBaseQuery + " 커피");
+        } else if ("숙소".equals(category)) {
+            addSearchQuery(queries, nearbySearchBaseQuery + " 펜션");
+        } else if ("관광지".equals(category)) {
+            addSearchQuery(queries, nearbySearchBaseQuery + " 가볼만한곳");
         }
 
         addSearchQuery(queries, buildRegionQuery(regionName, category));
@@ -794,10 +887,10 @@ public class TravelController {
         String safeCategory = category == null ? "" : category.trim();
 
         if (safeRegionName.isBlank()) {
-            return "강원특별자치도 " + safeCategory;
+            return "강원 " + safeCategory;
         }
 
-        return "강원특별자치도 " + safeRegionName + " " + safeCategory;
+        return safeRegionName + " " + safeCategory;
     }
 
     private void keepNearbyPlaces(List<NearbyPlaceDto> places,

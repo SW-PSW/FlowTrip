@@ -41,6 +41,34 @@ public class NearbyPlaceApiController {
         return places;
     }
 
+    @GetMapping("/api/places/more")
+    public List<NearbyPlaceDto> searchMorePlaces(@RequestParam String query,
+                                                 @RequestParam String category,
+                                                 @RequestParam String targetMapx,
+                                                 @RequestParam String targetMapy,
+                                                 @RequestParam(defaultValue = "6") int start,
+                                                 @RequestParam(defaultValue = "12") double maxDistanceKm) {
+
+        String searchQuery = buildCategoryQuery(query, category);
+
+        List<NearbyPlaceDto> places =
+                naverLocalSearchService.searchPlacesByKeywordPage(searchQuery, 5, start);
+
+        naverLocalSearchService.applyDistanceAndSortByMapxy(
+                targetMapx,
+                targetMapy,
+                places
+        );
+
+        places = places.stream()
+                .filter(place -> place.getDistanceKm() <= maxDistanceKm)
+                .toList();
+
+        applySavedCounts(places);
+
+        return places;
+    }
+
     private void applySavedCounts(List<NearbyPlaceDto> places) {
         if (places == null || places.isEmpty()) {
             return;
@@ -76,5 +104,20 @@ public class NearbyPlaceApiController {
                 .replaceAll("<[^>]*>", "")
                 .replace("&amp;", "&")
                 .trim();
+    }
+
+    private String buildCategoryQuery(String query, String category) {
+        String safeQuery = query == null ? "" : query.trim();
+        String safeCategory = category == null ? "" : category.trim();
+
+        if (safeQuery.isBlank()) {
+            return safeCategory;
+        }
+
+        if (safeCategory.isBlank()) {
+            return safeQuery;
+        }
+
+        return safeQuery + " " + safeCategory;
     }
 }

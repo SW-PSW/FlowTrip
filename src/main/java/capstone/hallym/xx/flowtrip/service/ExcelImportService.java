@@ -40,12 +40,13 @@ public class ExcelImportService {
 
     @Transactional
     public void importExcel() throws Exception {
-        if (regionRepository.count() > 0) {
-            return;
-        }
-
         try (InputStream is = new ClassPathResource("data/flowtrip_db.xlsx").getInputStream();
              Workbook workbook = new XSSFWorkbook(is)) {
+
+            if (regionRepository.count() > 0) {
+                importMissingPlaces(workbook.getSheet("places"));
+                return;
+            }
 
             importRegions(workbook.getSheet("regions"));
             importTags(workbook.getSheet("tags"));
@@ -124,11 +125,24 @@ public class ExcelImportService {
     }
 
     private void importPlaces(Sheet sheet) {
+        importPlaces(sheet, false);
+    }
+
+    private void importMissingPlaces(Sheet sheet) {
+        importPlaces(sheet, true);
+    }
+
+    private void importPlaces(Sheet sheet, boolean onlyMissing) {
         List<Place> list = new ArrayList<>();
 
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
             if (row == null) continue;
+
+            Long placeId = (long) getInt(row.getCell(0));
+            if (onlyMissing && placeRepository.existsById(placeId)) {
+                continue;
+            }
 
             Long regionId = (long) getInt(row.getCell(1));
             Long themeId = (long) getInt(row.getCell(2));
@@ -140,7 +154,7 @@ public class ExcelImportService {
                     .orElseThrow(() -> new IllegalArgumentException("Theme not found: " + themeId));
 
             Place p = new Place();
-            p.setPlaceId((long) getInt(row.getCell(0)));
+            p.setPlaceId(placeId);
             p.setRegion(region);
             p.setTheme(theme);
             p.setPlaceName(getString(row.getCell(3)));

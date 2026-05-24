@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -31,6 +32,8 @@ public class NaverLocalSearchService {
 
     private static final int NAVER_LOCAL_MAX_DISPLAY = 5;
     private static final int NAVER_LOCAL_MAX_PAGE = 1;
+    private static final long CACHE_TTL_MILLIS = 1000L * 60 * 30;
+    private final Map<String, CachedLocalSearchResult> localSearchCache = new ConcurrentHashMap<>();
     private long lastRequestAt = 0L;
 
     public String buildSearchBaseQuery(String regionName, String placeName) {
@@ -69,6 +72,23 @@ public class NaverLocalSearchService {
 
     public List<NearbyPlaceDto> searchPlacesByKeyword(String query) {
         return searchLocal(query, 5);
+    }
+
+    public List<NearbyPlaceDto> searchPlacesByKeywordPage(String query, int display, int start) {
+        int safeDisplay = Math.max(1, Math.min(NAVER_LOCAL_MAX_DISPLAY, display));
+        int safeStart = Math.max(1, start);
+        String cacheKey = normalizeCacheKey(query, safeDisplay) + "::start=" + safeStart;
+        CachedLocalSearchResult cached = localSearchCache.get(cacheKey);
+
+        if (cached != null && !cached.isExpired()) {
+            System.out.println("===== NAVER LOCAL PAGE CACHE HIT =====");
+            System.out.println(query + " / start=" + safeStart + " / display=" + safeDisplay);
+            return copyPlaces(cached.getPlaces());
+        }
+
+        List<NearbyPlaceDto> places = searchLocalPage(query, safeDisplay, safeStart);
+        localSearchCache.put(cacheKey, new CachedLocalSearchResult(copyPlaces(places)));
+        return places;
     }
 
     public void applyDistanceAndSort(NearbyPlaceDto target, List<NearbyPlaceDto> places) {
@@ -112,6 +132,15 @@ public class NaverLocalSearchService {
     }
 
     private List<NearbyPlaceDto> searchLocal(String query, int totalDisplay) {
+        String cacheKey = normalizeCacheKey(query, totalDisplay);
+        CachedLocalSearchResult cached = localSearchCache.get(cacheKey);
+
+        if (cached != null && !cached.isExpired()) {
+            System.out.println("===== NAVER LOCAL SEARCH CACHE HIT =====");
+            System.out.println(query + " / display=" + totalDisplay);
+            return copyPlaces(cached.getPlaces());
+        }
+
         List<NearbyPlaceDto> result = new ArrayList<>();
 
         int start = 1;
@@ -144,6 +173,8 @@ public class NaverLocalSearchService {
                 break;
             }
         }
+
+        localSearchCache.put(cacheKey, new CachedLocalSearchResult(copyPlaces(result)));
 
         return result;
     }
@@ -197,6 +228,8 @@ public class NaverLocalSearchService {
             return result;
         }
 
+        int totalResultCount = asInt(responseBody.get("total"));
+
         for (Map<String, Object> item : items) {
             String title = cleanHtml(asString(item.get("title")));
             String category = asString(item.get("category"));
@@ -207,7 +240,7 @@ public class NaverLocalSearchService {
             String mapx = asString(item.get("mapx"));
             String mapy = asString(item.get("mapy"));
 
-            result.add(new NearbyPlaceDto(
+            NearbyPlaceDto place = new NearbyPlaceDto(
                     title,
                     category,
                     address,
@@ -216,7 +249,9 @@ public class NaverLocalSearchService {
                     link,
                     mapx,
                     mapy
-            ));
+            );
+            place.setNaverLocalResultCount(totalResultCount);
+            result.add(place);
         }
 
         return result;
@@ -226,15 +261,68 @@ public class NaverLocalSearchService {
         long now = System.currentTimeMillis();
         long diff = now - lastRequestAt;
 
-        if (diff < 180) {
+        if (diff < 260) {
             try {
-                Thread.sleep(180 - diff);
+                Thread.sleep(260 - diff);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }
 
         lastRequestAt = System.currentTimeMillis();
+    }
+
+    private String normalizeCacheKey(String query, int totalDisplay) {
+        return (query == null ? "" : query.trim().replaceAll("\\s+", " "))
+                + "::"
+                + totalDisplay;
+    }
+
+    private List<NearbyPlaceDto> copyPlaces(List<NearbyPlaceDto> places) {
+        List<NearbyPlaceDto> copies = new ArrayList<>();
+
+        if (places == null) {
+            return copies;
+        }
+
+        for (NearbyPlaceDto place : places) {
+            NearbyPlaceDto copy = new NearbyPlaceDto(
+                    place.getTitle(),
+                    place.getCategory(),
+                    place.getAddress(),
+                    place.getRoadAddress(),
+                    place.getTelephone(),
+                    place.getLink(),
+                    place.getMapx(),
+                    place.getMapy()
+            );
+            copy.setDistanceKm(place.getDistanceKm());
+            copy.setImageUrl(place.getImageUrl());
+            copy.setSavedCount(place.getSavedCount());
+            copy.setNaverLocalResultCount(place.getNaverLocalResultCount());
+            copies.add(copy);
+        }
+
+        return copies;
+    }
+
+    private static class CachedLocalSearchResult {
+
+        private final List<NearbyPlaceDto> places;
+        private final long cachedAt;
+
+        CachedLocalSearchResult(List<NearbyPlaceDto> places) {
+            this.places = places;
+            this.cachedAt = System.currentTimeMillis();
+        }
+
+        List<NearbyPlaceDto> getPlaces() {
+            return places;
+        }
+
+        boolean isExpired() {
+            return System.currentTimeMillis() - cachedAt > CACHE_TTL_MILLIS;
+        }
     }
 
     private boolean containsSamePlace(List<NearbyPlaceDto> places, NearbyPlaceDto target) {
@@ -304,6 +392,18 @@ public class NaverLocalSearchService {
         }
 
         return String.valueOf(value);
+    }
+
+    private int asInt(Object value) {
+        if (value == null) {
+            return 0;
+        }
+
+        try {
+            return Integer.parseInt(String.valueOf(value));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     private String nullSafe(String value) {

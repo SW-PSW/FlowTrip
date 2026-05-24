@@ -1,6 +1,7 @@
 package capstone.hallym.xx.flowtrip.controller;
 
 import java.util.List;
+import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
@@ -82,6 +83,7 @@ public class MyTravelController {
         model.addAttribute("travelPlan", travelPlan);
         model.addAttribute("courseItems", courseItems);
         model.addAttribute("dayCount", calculateDayCount(travelPlan, courseItems));
+        model.addAttribute("earnedBadges", buildEarnedBadges(travelPlan, courseItems));
         model.addAttribute("naverMapClientId", naverMapClientId);
 
         return "my-travel-detail";
@@ -120,6 +122,39 @@ public class MyTravelController {
         return "redirect:/my-travel";
     }
 
+    @PostMapping("/my-travel/{travelPlanId}/items/{itemId}/delete")
+    public String deleteTravelCourseItem(@PathVariable Long travelPlanId,
+                                         @PathVariable Long itemId,
+                                         Authentication authentication) {
+
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return "redirect:/login";
+        }
+
+        AppUser user = userRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new RuntimeException("회원 정보를 찾을 수 없습니다."));
+
+        TravelPlan travelPlan = travelPlanRepository.findById(travelPlanId)
+                .orElse(null);
+
+        if (travelPlan == null
+                || travelPlan.getUser() == null
+                || !travelPlan.getUser().getId().equals(user.getId())) {
+            return "redirect:/my-travel";
+        }
+
+        TravelCourseItem courseItem =
+                travelCourseItemRepository.findById(itemId).orElse(null);
+
+        if (courseItem != null
+                && courseItem.getTravelPlan() != null
+                && courseItem.getTravelPlan().getId().equals(travelPlanId)) {
+            travelCourseItemRepository.delete(courseItem);
+        }
+
+        return "redirect:/my-travel/" + travelPlanId;
+    }
+
     private long calculateDayCount(TravelPlan travelPlan,
                                    List<TravelCourseItem> courseItems) {
         long dayCount = 1;
@@ -144,5 +179,117 @@ public class MyTravelController {
         }
 
         return dayCount;
+    }
+
+    private List<SharedTravelController.BadgeView> buildEarnedBadges(TravelPlan travelPlan,
+                                                                     List<TravelCourseItem> courseItems) {
+        String corpus = buildTravelCorpus(travelPlan, courseItems);
+        List<SharedTravelController.BadgeView> badges = new ArrayList<>();
+
+        addBadge(badges, corpus, "바다 감성", "강릉", "커피 소환사",
+                "안목해변 커피코스 방문 완료",
+                List.of("강릉", "안목", "커피"));
+        addBadge(badges, corpus, "바다 감성", "속초", "오징어 레이드 장인",
+                "속초중앙시장 먹거리 코스 방문 완료",
+                List.of("속초", "중앙시장", "먹거리"));
+        addBadge(badges, corpus, "바다 감성", "동해", "해돋이 퍼스트 클리어",
+                "추암촛대바위 일출 명소 코스 방문 완료",
+                List.of("동해", "추암", "촛대바위", "일출"));
+        addBadge(badges, corpus, "바다 감성", "삼척", "동굴 던전 마스터",
+                "환선굴, 대금굴 동굴 탐험 코스 방문 완료",
+                List.of("삼척", "환선굴", "대금굴", "동굴"));
+        addBadge(badges, corpus, "바다 감성", "양양", "파도타기 만렙러",
+                "서핑 해변 코스 방문 완료",
+                List.of("양양", "서피비치", "죽도해변", "인구해변", "서핑"));
+        addBadge(badges, corpus, "바다 감성", "고성", "DMZ 은신처 개척자",
+                "통일전망대 방문 완료",
+                List.of("고성", "통일전망대", "DMZ"));
+        addBadge(badges, corpus, "자연 힐링", "평창", "눈꽃왕국 수호자",
+                "대관령 목장 또는 설경 코스 방문 완료",
+                List.of("평창", "대관령", "삼양라운드힐", "선자령", "목장"));
+        addBadge(badges, corpus, "자연 힐링", "정선", "아리랑 소울 수집가",
+                "정선 아리랑 코스 방문 완료",
+                List.of("정선", "아리랑", "5일장"));
+        addBadge(badges, corpus, "자연 힐링", "인제", "백패킹 생존 고수",
+                "자작나무숲 트레킹 코스 방문 완료",
+                List.of("인제", "자작나무숲", "트레킹"));
+        addBadge(badges, corpus, "자연 힐링", "홍천", "숲멍 달인",
+                "가리산, 수타사, 무궁화수목원 또는 은행나무숲 코스 방문 완료",
+                List.of("홍천", "가리산", "수타사", "무궁화수목원", "은행나무숲"));
+        addBadge(badges, corpus, "자연 힐링", "횡성", "한우 굽기 국가대표",
+                "횡성 한우 코스 방문 완료",
+                List.of("횡성", "한우"));
+        addBadge(badges, corpus, "자연 힐링", "화천", "얼음낚시 전설러",
+                "화천 산천어 코스 방문 완료",
+                List.of("화천", "산천어", "얼음낚시"));
+        addBadge(badges, corpus, "문화·먹거리", "춘천", "닭갈비 불쇼 지배자",
+                "춘천 닭갈비 코스 방문 완료",
+                List.of("춘천", "닭갈비", "닭불고기"));
+        addBadge(badges, corpus, "문화·먹거리", "원주", "전시회 도장깨기러",
+                "뮤지엄 산 또는 원주 전시 코스 방문 완료",
+                List.of("원주", "뮤지엄 산", "시립미술관", "전시"));
+        addBadge(badges, corpus, "문화·먹거리", "태백", "탄광 유물 발굴단장",
+                "태백 체험공원 또는 석탄박물관 방문 완료",
+                List.of("태백", "석탄", "탄광", "태백체험공원"));
+        addBadge(badges, corpus, "문화·먹거리", "영월", "은하수 길잡이",
+                "별마로천문대 방문 완료",
+                List.of("영월", "별마로", "천문대", "은하수"));
+        addBadge(badges, corpus, "문화·먹거리", "철원", "평화미션 수행자",
+                "철원 평화전망대 방문 완료",
+                List.of("철원", "평화전망대", "평화"));
+
+        return badges;
+    }
+
+    private void addBadge(List<SharedTravelController.BadgeView> badges,
+                          String corpus,
+                          String theme,
+                          String city,
+                          String name,
+                          String condition,
+                          List<String> keywords) {
+        boolean earned = false;
+
+        for (String keyword : keywords) {
+            if (corpus.contains(keyword.toLowerCase())) {
+                earned = true;
+                break;
+            }
+        }
+
+        if (earned) {
+            badges.add(new SharedTravelController.BadgeView(theme, city, name, condition, true));
+        }
+    }
+
+    private String buildTravelCorpus(TravelPlan travelPlan,
+                                     List<TravelCourseItem> courseItems) {
+        StringBuilder builder = new StringBuilder();
+
+        if (travelPlan != null) {
+            appendText(builder, travelPlan.getTitle());
+            appendText(builder, travelPlan.getRegion());
+            appendText(builder, travelPlan.getMoodGroup());
+            appendText(builder, travelPlan.getSelectedThemeName());
+            appendText(builder, travelPlan.getRecommendedPlaceName());
+            appendText(builder, travelPlan.getMemo());
+        }
+
+        if (courseItems != null) {
+            for (TravelCourseItem item : courseItems) {
+                appendText(builder, item.getPlaceName());
+                appendText(builder, item.getCategory());
+                appendText(builder, item.getAddress());
+                appendText(builder, item.getMemo());
+            }
+        }
+
+        return builder.toString().toLowerCase();
+    }
+
+    private void appendText(StringBuilder builder, String value) {
+        if (value != null && !value.isBlank()) {
+            builder.append(' ').append(value);
+        }
     }
 }

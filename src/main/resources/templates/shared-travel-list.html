@@ -49,7 +49,10 @@
         }
 
         .sidebar {
+            position: sticky;
+            top: 0;
             min-height: 100vh;
+            height: 100vh;
             padding: 28px 0;
             background: rgba(7, 18, 22, 0.52);
             border-right: 1px solid rgba(255, 255, 255, 0.08);
@@ -176,6 +179,43 @@
             box-shadow: 0 14px 28px rgba(246, 198, 91, 0.18);
         }
 
+        .filter-banner {
+            margin: -10px 0 24px;
+            padding: 16px 18px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            background: rgba(12, 18, 18, 0.58);
+            border: 1px solid rgba(246, 198, 91, 0.24);
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 750;
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+        }
+
+        .filter-place {
+            color: var(--gold);
+            font-weight: 950;
+        }
+
+        .clear-filter-link {
+            min-height: 36px;
+            padding: 0 12px;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.06);
+            font-size: 13px;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+
         .post-grid {
             display: grid;
             grid-template-columns: repeat(3, minmax(260px, 1fr));
@@ -267,34 +307,35 @@
         .earned-badges {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 8px;
             margin: 4px 0 16px;
         }
 
         .mini-badge {
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            min-height: 38px;
-            padding: 7px 10px 7px 7px;
-            border-radius: 999px;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            padding: 0;
+            border-radius: 50%;
             color: var(--text);
             background: rgba(255, 255, 255, 0.08);
             border: 1px solid rgba(246, 198, 91, 0.24);
-            font-size: 12px;
-            font-weight: 900;
+            transition: transform 0.18s ease, border-color 0.18s ease;
         }
 
-        .mini-badge-mark {
-            width: 25px;
-            height: 25px;
+        .mini-badge:hover {
+            transform: translateY(-3px);
+            border-color: rgba(246, 198, 91, 0.62);
+        }
+
+        .mini-badge-img {
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
-            display: grid;
-            place-items: center;
-            color: #1e1606;
-            background: linear-gradient(135deg, #f8d982, #dca73c);
-            font-size: 12px;
-            font-weight: 950;
+            object-fit: cover;
+            display: block;
         }
 
         .badge-empty {
@@ -328,10 +369,11 @@
 
         @media (max-width: 760px) {
             .app { display: block; }
-            .sidebar { min-height: auto; }
+            .sidebar { position: static; min-height: auto; height: auto; }
             .side-menu { display: none; }
             .content { padding: 24px; }
             .page-head { display: block; }
+            .filter-banner { align-items: flex-start; flex-direction: column; }
             .primary-link { margin-top: 20px; }
             .post-grid { grid-template-columns: 1fr; }
         }
@@ -371,17 +413,30 @@
             <div>
                 <div class="eyebrow">FLOWTRIP BOARD</div>
                 <h1>여행 코스 공유 게시판</h1>
-                <p class="desc">
+                <p class="desc" th:if="${filterPlace == null or filterPlace == ''}">
                     사람들이 직접 저장한 강원 여행 코스를 둘러보고, 닉네임을 눌러 획득한 테마 뱃지를 확인해보세요.
+                </p>
+                <p class="desc" th:if="${filterPlace != null and filterPlace != ''}">
+                    같은 추천 장소를 받은 사람들이 어떻게 DAY별 코스를 구성했는지 참고해보세요.
                 </p>
             </div>
 
             <a class="primary-link" href="/my-travel">내 코스 공유하기</a>
         </div>
 
+        <div class="filter-banner" th:if="${filterPlace != null and filterPlace != ''}">
+            <div>
+                <span class="filter-place" th:text="${filterPlace}">추천 장소</span>
+                추천 장소와 연결된 공유 코스만 보고 있습니다.
+            </div>
+            <a class="clear-filter-link" href="/shared-travel">전체 공유글 보기</a>
+        </div>
+
         <div th:if="${posts == null or posts.isEmpty()}" class="empty">
-            <h2>아직 공유된 여행 코스가 없습니다.</h2>
-            <p>마이페이지에서 저장한 여행 코스를 공유하면 이곳에 표시됩니다.</p>
+            <h2 th:if="${filterPlace == null or filterPlace == ''}">아직 공유된 여행 코스가 없습니다.</h2>
+            <h2 th:if="${filterPlace != null and filterPlace != ''}">아직 같은 장소의 공유 코스가 없습니다.</h2>
+            <p th:if="${filterPlace == null or filterPlace == ''}">마이페이지에서 저장한 여행 코스를 공유하면 이곳에 표시됩니다.</p>
+            <p th:if="${filterPlace != null and filterPlace != ''}">내 코스를 저장하고 공유하면 다른 사람이 이 장소 코스를 참고할 수 있어요.</p>
         </div>
 
         <div th:if="${posts != null and !posts.isEmpty()}" class="post-grid">
@@ -428,9 +483,11 @@
                     <a class="mini-badge"
                        th:each="badge, badgeStat : ${earnedBadgesByUserId[post.user.id]}"
                        th:if="${badgeStat.index < 3}"
+                       th:title="${badge.name}"
                        th:href="@{/shared-travel/users/{id}(id=${post.user.id})}">
-                        <span class="mini-badge-mark" th:text="${badge.initial}">강</span>
-                        <span th:text="${badge.name}">커피 소환사</span>
+                        <img class="mini-badge-img"
+                             th:src="${badge.imagePath}"
+                             th:alt="${badge.name}">
                     </a>
 
                     <a class="badge-empty"

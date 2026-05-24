@@ -6,6 +6,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import capstone.hallym.xx.flowtrip.dto.SignupRequestDto;
+import capstone.hallym.xx.flowtrip.entity.AppUser;
+import capstone.hallym.xx.flowtrip.repository.UserRepository;
 import capstone.hallym.xx.flowtrip.service.UserService;
 
 @RestController
@@ -13,9 +15,12 @@ import capstone.hallym.xx.flowtrip.service.UserService;
 public class AuthController {
 
     private final UserService userService;
+    private final UserRepository userRepository;
 
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService,
+                          UserRepository userRepository) {
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping("/signup")
@@ -52,9 +57,16 @@ public class AuthController {
             );
         }
 
+        AppUser user = userRepository.findByUsername(authentication.getName())
+                .orElse(null);
+        String nickname = user == null || user.getNickname() == null || user.getNickname().isBlank()
+                ? authentication.getName()
+                : user.getNickname();
+
         return Map.of(
                 "authenticated", true,
-                "username", authentication.getName()
+                "username", authentication.getName(),
+                "nickname", nickname
         );
     }
 }

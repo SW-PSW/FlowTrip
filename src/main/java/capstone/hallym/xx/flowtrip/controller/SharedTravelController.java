@@ -38,12 +38,20 @@ public class SharedTravelController {
     }
 
     @GetMapping("/shared-travel")
-    public String sharedTravelList(Model model) {
+    public String sharedTravelList(@RequestParam(required = false) String place,
+                                   Model model) {
         List<SharedTravelPost> posts =
                 sharedTravelPostRepository.findAllByOrderByCreatedAtDesc();
 
+        String filterPlace = place == null ? "" : place.trim();
+
+        if (!filterPlace.isBlank()) {
+            posts = filterPostsByRecommendedPlace(posts, filterPlace);
+        }
+
         model.addAttribute("posts", posts);
         model.addAttribute("earnedBadgesByUserId", buildEarnedBadgesByUserId(posts));
+        model.addAttribute("filterPlace", filterPlace);
 
         return "shared-travel-list";
     }
@@ -214,6 +222,49 @@ public class SharedTravelController {
         }
 
         return dayCount;
+    }
+
+    private List<SharedTravelPost> filterPostsByRecommendedPlace(List<SharedTravelPost> posts,
+                                                                  String place) {
+        List<SharedTravelPost> filteredPosts = new ArrayList<>();
+        String normalizedPlace = normalizeSearchText(place);
+
+        if (normalizedPlace.isBlank()) {
+            return posts;
+        }
+
+        for (SharedTravelPost post : posts) {
+            if (post == null || post.getTravelPlan() == null) {
+                continue;
+            }
+
+            String recommendedPlaceName =
+                    post.getTravelPlan().getRecommendedPlaceName();
+            String normalizedRecommendedPlace =
+                    normalizeSearchText(recommendedPlaceName);
+
+            if (normalizedRecommendedPlace.isBlank()) {
+                continue;
+            }
+
+            if (normalizedRecommendedPlace.contains(normalizedPlace)
+                    || normalizedPlace.contains(normalizedRecommendedPlace)) {
+                filteredPosts.add(post);
+            }
+        }
+
+        return filteredPosts;
+    }
+
+    private String normalizeSearchText(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        return value
+                .replaceAll("<[^>]*>", "")
+                .replaceAll("[^가-힣a-zA-Z0-9]", "")
+                .toLowerCase();
     }
 
     private List<BadgeView> buildBadges(List<SharedTravelPost> posts) {
@@ -388,6 +439,7 @@ public class SharedTravelController {
         private final String name;
         private final String condition;
         private final boolean earned;
+        private final String imagePath;
 
         public BadgeView(String theme,
                          String city,
@@ -399,6 +451,7 @@ public class SharedTravelController {
             this.name = name;
             this.condition = condition;
             this.earned = earned;
+            this.imagePath = "/images/badges/" + resolveBadgeImageFileName(city);
         }
 
         public String getTheme() {
@@ -421,8 +474,34 @@ public class SharedTravelController {
             return earned;
         }
 
+        public String getImagePath() {
+            return imagePath;
+        }
+
         public String getInitial() {
             return city == null || city.isBlank() ? "F" : city.substring(0, 1);
+        }
+
+        private static String resolveBadgeImageFileName(String city) {
+            if ("강릉".equals(city)) return "gangneung.png";
+            if ("고성".equals(city)) return "goseong.png";
+            if ("동해".equals(city)) return "donghae.png";
+            if ("삼척".equals(city)) return "samcheok.png";
+            if ("속초".equals(city)) return "sokcho.png";
+            if ("양양".equals(city)) return "yangyang.png";
+            if ("영월".equals(city)) return "yeongwol.png";
+            if ("원주".equals(city)) return "wonju.png";
+            if ("인제".equals(city)) return "inje.png";
+            if ("정선".equals(city)) return "jeongseon.png";
+            if ("철원".equals(city)) return "cheorwon.png";
+            if ("춘천".equals(city)) return "chuncheon.png";
+            if ("태백".equals(city)) return "taebaek.png";
+            if ("평창".equals(city)) return "pyeongchang.png";
+            if ("홍천".equals(city)) return "hongcheon.png";
+            if ("화천".equals(city)) return "hwacheon.png";
+            if ("횡성".equals(city)) return "hoengseong.png";
+
+            return "gangneung.png";
         }
     }
 }

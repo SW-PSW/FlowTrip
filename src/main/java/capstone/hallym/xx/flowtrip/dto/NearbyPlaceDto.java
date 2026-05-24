@@ -13,6 +13,7 @@ public class NearbyPlaceDto {
     private double distanceKm;
     private String imageUrl;
     private long savedCount;
+    private int naverLocalResultCount;
 
     public NearbyPlaceDto() {
     }
@@ -82,5 +83,13 @@ public class NearbyPlaceDto {
 
     public void setSavedCount(long savedCount) {
         this.savedCount = savedCount;
+    }
+
+    public int getNaverLocalResultCount() {
+        return naverLocalResultCount;
+    }
+
+    public void setNaverLocalResultCount(int naverLocalResultCount) {
+        this.naverLocalResultCount = naverLocalResultCount;
     }
 }

@@ -38,7 +38,10 @@
         }
 
         .sidebar {
+            position: sticky;
+            top: 0;
             min-height: 100vh;
+            height: 100vh;
             padding: 28px 0;
             background: rgba(7, 18, 22, 0.52);
             border-right: 1px solid rgba(255, 255, 255, 0.08);
@@ -191,7 +194,7 @@
             display: grid;
             grid-template-columns: minmax(430px, 0.85fr) minmax(520px, 1.15fr);
             gap: 28px;
-            align-items: stretch;
+            align-items: start;
         }
 
         .glass-panel {
@@ -209,10 +212,62 @@
             min-height: 640px;
         }
 
+        .map-panel {
+            position: sticky;
+            top: 28px;
+            height: 720px;
+            min-height: 0;
+        }
+
+        .badge-panel {
+            grid-column: 1 / -1;
+            padding: 28px;
+        }
+
         .section-title {
             margin: 0 0 18px;
             font-size: 24px;
             font-weight: 950;
+        }
+
+        .badge-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .earned-badge-card {
+            width: 184px;
+            min-height: 238px;
+            border-radius: 24px;
+            padding: 16px 14px;
+            background: linear-gradient(145deg, rgba(246, 198, 91, 0.17), rgba(255, 255, 255, 0.07));
+            border: 1px solid rgba(246, 198, 91, 0.28);
+            text-align: center;
+        }
+
+        .earned-badge-image {
+            width: 134px;
+            height: 134px;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            margin: 0 auto 12px;
+            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.28);
+        }
+
+        .earned-badge-name {
+            color: var(--text);
+            font-size: 15px;
+            font-weight: 950;
+            line-height: 1.35;
+        }
+
+        .earned-badge-meta {
+            margin-top: 6px;
+            color: var(--gold);
+            font-size: 12px;
+            font-weight: 900;
         }
 
         .plan-summary {
@@ -252,7 +307,7 @@
 
         .course-item {
             display: grid;
-            grid-template-columns: 42px 88px 1fr;
+            grid-template-columns: 42px 88px 1fr auto;
             gap: 16px;
             align-items: center;
             padding: 14px;
@@ -267,6 +322,29 @@
             transform: translateY(-2px);
             background: rgba(255,255,255,0.075);
             border-color: rgba(246, 198, 91, 0.24);
+        }
+
+        .item-delete-form {
+            align-self: stretch;
+            display: flex;
+            align-items: center;
+        }
+
+        .item-delete-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 107, 107, 0.28);
+            background: rgba(255, 107, 107, 0.1);
+            color: #ff9c9c;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: 950;
+        }
+
+        .item-delete-btn:hover {
+            border-color: rgba(255, 107, 107, 0.55);
+            background: rgba(255, 107, 107, 0.18);
         }
 
         .course-order {
@@ -325,7 +403,7 @@
         #map {
             width: 100%;
             height: calc(100% - 48px);
-            min-height: 560px;
+            min-height: 0;
             border-radius: 24px;
             overflow: hidden;
             background: rgba(255,255,255,0.14);
@@ -355,7 +433,9 @@
             }
 
             .sidebar {
+                position: static;
                 min-height: auto;
+                height: auto;
             }
 
             .side-menu {
@@ -452,6 +532,24 @@
 
         <div class="detail-grid">
 
+            <section class="glass-panel badge-panel">
+                <h2 class="section-title">획득한 강원 뱃지</h2>
+
+                <div class="badge-strip" th:if="${earnedBadges != null and !earnedBadges.isEmpty()}">
+                    <article class="earned-badge-card" th:each="badge : ${earnedBadges}">
+                        <img class="earned-badge-image"
+                             th:src="${badge.imagePath}"
+                             th:alt="${badge.name}">
+                        <div class="earned-badge-name" th:text="${badge.name}">커피 소환사</div>
+                        <div class="earned-badge-meta" th:text="|${badge.city} · ${badge.theme}|">강릉 · 바다 감성</div>
+                    </article>
+                </div>
+
+                <div th:if="${earnedBadges == null or earnedBadges.isEmpty()}" class="empty">
+                    이 코스에서 획득한 뱃지가 아직 없습니다.
+                </div>
+            </section>
+
             <section class="glass-panel course-panel">
 
                 <h2 class="section-title">여행 코스</h2>
@@ -531,6 +629,14 @@
                                         <span th:text="${item.address != null and item.address != '' ? item.address : '주소 정보 없음'}"></span>
                                     </div>
                                 </div>
+
+                                <form class="item-delete-form"
+                                      th:action="@{/my-travel/{planId}/items/{itemId}/delete(planId=${travelPlan.id}, itemId=${item.id})}"
+                                      method="post"
+                                      onclick="event.stopPropagation();"
+                                      onsubmit="return confirm('이 장소를 코스에서 삭제할까요?');">
+                                    <button type="submit" class="item-delete-btn" title="장소 삭제">×</button>
+                                </form>
                             </div>
                         </div>
 

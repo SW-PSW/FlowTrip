@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 
 import capstone.hallym.xx.flowtrip.dto.CongestionAnalysisDto;
+import capstone.hallym.xx.flowtrip.dto.NearbyPlaceDto;
 import capstone.hallym.xx.flowtrip.dto.RecommendationResultDto;
 import capstone.hallym.xx.flowtrip.dto.TravelRequestDto;
 import capstone.hallym.xx.flowtrip.dto.WeatherForecastDto;
@@ -17,7 +18,10 @@ public class CongestionAnalysisService {
     public CongestionAnalysisDto analyze(TravelRequestDto requestDto,
                                          RecommendationResultDto recommendationResult,
                                          Place selectedPlace,
-                                         WeatherForecastDto weatherForecast) {
+                                         WeatherForecastDto weatherForecast,
+                                         NearbyPlaceDto targetPlace,
+                                         int naverReviewResultCount,
+                                         long savedCount) {
 
         CongestionAnalysisDto result = new CongestionAnalysisDto();
 
@@ -54,6 +58,18 @@ public class CongestionAnalysisService {
             score += 10;
         }
 
+        int naverLocalResultCount = targetPlace == null
+                ? 0
+                : targetPlace.getNaverLocalResultCount();
+
+        int popularityImpactScore = calculatePopularityImpactScore(
+                naverLocalResultCount,
+                naverReviewResultCount,
+                savedCount
+        );
+
+        score += popularityImpactScore;
+
         int weatherCrowdImpactScore = 0;
         String weatherCrowdImpactReason = "날씨 예보가 없어 혼잡도 보정에는 반영하지 않았습니다.";
 
@@ -81,6 +97,10 @@ public class CongestionAnalysisService {
         result.setWeatherSummary(weatherForecast == null ? null : weatherForecast.getWeatherSummary());
         result.setWeatherCrowdImpactReason(weatherCrowdImpactReason);
         result.setWeatherCrowdImpactScore(weatherCrowdImpactScore);
+        result.setNaverLocalResultCount(naverLocalResultCount);
+        result.setNaverReviewResultCount(naverReviewResultCount);
+        result.setSavedCount(savedCount);
+        result.setPopularityImpactScore(popularityImpactScore);
         result.setRecommendedVisitTime(buildRecommendedVisitTime(level, outdoorPlace));
         result.setAlternativeGuide(buildAlternativeGuide(level, recommendationResult));
 
@@ -93,6 +113,10 @@ public class CongestionAnalysisService {
                 outdoorPlace,
                 seaOrLakePlace,
                 avoidCrowded,
+                naverLocalResultCount,
+                naverReviewResultCount,
+                savedCount,
+                popularityImpactScore,
                 weatherCrowdImpactScore,
                 weatherCrowdImpactReason
         ));
@@ -207,6 +231,44 @@ public class CongestionAnalysisService {
         return "낮음";
     }
 
+    private int calculatePopularityImpactScore(int naverLocalResultCount,
+                                               int naverReviewResultCount,
+                                               long savedCount) {
+        int score = 0;
+
+        if (naverLocalResultCount >= 100) {
+            score += 12;
+        } else if (naverLocalResultCount >= 30) {
+            score += 8;
+        } else if (naverLocalResultCount >= 10) {
+            score += 5;
+        } else if (naverLocalResultCount > 0) {
+            score += 2;
+        }
+
+        if (naverReviewResultCount >= 100) {
+            score += 15;
+        } else if (naverReviewResultCount >= 30) {
+            score += 10;
+        } else if (naverReviewResultCount >= 10) {
+            score += 6;
+        } else if (naverReviewResultCount > 0) {
+            score += 3;
+        }
+
+        if (savedCount >= 20) {
+            score += 15;
+        } else if (savedCount >= 10) {
+            score += 10;
+        } else if (savedCount >= 3) {
+            score += 5;
+        } else if (savedCount > 0) {
+            score += 2;
+        }
+
+        return Math.min(score, 30);
+    }
+
     private String buildWeekendSignal(boolean weekend) {
         if (weekend) {
             return "주말 방문 일정으로 인해 평일보다 방문 수요가 높을 가능성이 있습니다.";
@@ -299,6 +361,10 @@ public class CongestionAnalysisService {
                                boolean outdoorPlace,
                                boolean seaOrLakePlace,
                                boolean avoidCrowded,
+                               int naverLocalResultCount,
+                               int naverReviewResultCount,
+                               long savedCount,
+                               int popularityImpactScore,
                                int weatherCrowdImpactScore,
                                String weatherCrowdImpactReason) {
 
@@ -329,6 +395,18 @@ public class CongestionAnalysisService {
 
         if (avoidCrowded) {
             sb.append("사용자가 혼잡 회피를 선호하므로 혼잡 위험을 보수적으로 반영했습니다. ");
+        }
+
+        if (popularityImpactScore > 0) {
+            sb.append("네이버 지역 검색 결과 ")
+                    .append(naverLocalResultCount)
+                    .append("건, 블로그 후기 검색 결과 ")
+                    .append(naverReviewResultCount)
+                    .append("건, 서비스 내 담은 수 ")
+                    .append(savedCount)
+                    .append("건을 수요 신호로 보아 +")
+                    .append(popularityImpactScore)
+                    .append("점을 반영했습니다. ");
         }
 
         if (weatherCrowdImpactScore != 0 || (weatherCrowdImpactReason != null && !weatherCrowdImpactReason.isBlank())) {

@@ -28,14 +28,18 @@ public class PlaceDetailApiController {
 
     @GetMapping("/api/place/detail")
     public PlaceReviewResponseDto getPlaceDetail(
-            @RequestParam String placeName
+            @RequestParam String placeName,
+            @RequestParam(required = false) String contextName,
+            @RequestParam(required = false) String contextAddress
     ) {
 
         System.out.println("===== PLACE DETAIL API =====");
         System.out.println("placeName = " + placeName);
+        System.out.println("contextName = " + contextName);
+        System.out.println("contextAddress = " + contextAddress);
 
         List<BlogReviewDto> reviews =
-                naverBlogSearchService.searchReviews(placeName);
+                naverBlogSearchService.searchReviews(placeName, contextName, contextAddress);
 
         List<PlaceImageDto> images =
                 naverImageSearchService.searchPlaceImages(placeName);

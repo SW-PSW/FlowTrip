@@ -14,6 +14,10 @@ public class CongestionAnalysisDto {
     private String weatherSummary;
     private String weatherCrowdImpactReason;
     private int weatherCrowdImpactScore;
+    private int naverLocalResultCount;
+    private int naverReviewResultCount;
+    private long savedCount;
+    private int popularityImpactScore;
 
     private boolean weekend;
     private boolean peakSeason;
@@ -115,6 +119,38 @@ public class CongestionAnalysisDto {
 
     public void setWeatherCrowdImpactScore(int weatherCrowdImpactScore) {
         this.weatherCrowdImpactScore = weatherCrowdImpactScore;
+    }
+
+    public int getNaverLocalResultCount() {
+        return naverLocalResultCount;
+    }
+
+    public void setNaverLocalResultCount(int naverLocalResultCount) {
+        this.naverLocalResultCount = naverLocalResultCount;
+    }
+
+    public int getNaverReviewResultCount() {
+        return naverReviewResultCount;
+    }
+
+    public void setNaverReviewResultCount(int naverReviewResultCount) {
+        this.naverReviewResultCount = naverReviewResultCount;
+    }
+
+    public long getSavedCount() {
+        return savedCount;
+    }
+
+    public void setSavedCount(long savedCount) {
+        this.savedCount = savedCount;
+    }
+
+    public int getPopularityImpactScore() {
+        return popularityImpactScore;
+    }
+
+    public void setPopularityImpactScore(int popularityImpactScore) {
+        this.popularityImpactScore = popularityImpactScore;
     }
 
     public boolean isWeekend() {

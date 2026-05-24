@@ -49,7 +49,10 @@
         }
 
         .sidebar {
+            position: sticky;
+            top: 0;
             min-height: 100vh;
+            height: 100vh;
             padding: 28px 0;
             background: rgba(7, 18, 22, 0.52);
             border-right: 1px solid rgba(255, 255, 255, 0.08);
@@ -262,7 +265,7 @@
         }
 
         .theme-badge {
-            min-height: 170px;
+            min-height: 286px;
             border-radius: 24px;
             padding: 18px;
             background: rgba(255,255,255,0.06);
@@ -271,6 +274,32 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
+        }
+
+        .badge-image-wrap {
+            width: 128px;
+            height: 128px;
+            margin: 0 auto 4px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            overflow: hidden;
+        }
+
+        .badge-image {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 50%;
+            filter: grayscale(1);
+            opacity: 0.55;
+        }
+
+        .theme-badge.earned .badge-image {
+            filter: none;
+            opacity: 1;
         }
 
         .theme-badge.earned {
@@ -402,7 +431,7 @@
 
         @media (max-width: 760px) {
             .app { display: block; }
-            .sidebar { min-height: auto; }
+            .sidebar { position: static; min-height: auto; height: auto; }
             .side-menu { display: none; }
             .content { padding: 24px; }
             .page-head { display: block; }
@@ -494,6 +523,11 @@
                     <article th:each="badge : ${badges}"
                              th:classappend="${badge.earned} ? ' earned' : ''"
                              class="theme-badge">
+                        <div class="badge-image-wrap">
+                            <img class="badge-image"
+                                 th:src="${badge.imagePath}"
+                                 th:alt="${badge.name}">
+                        </div>
                         <div class="badge-top">
                             <span class="badge-city" th:text="${badge.city}">강릉</span>
                             <span class="badge-state" th:text="${badge.earned} ? '획득' : '미획득'">획득</span>
