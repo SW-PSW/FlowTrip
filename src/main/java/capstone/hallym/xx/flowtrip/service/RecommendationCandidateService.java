@@ -1,7 +1,10 @@
 package capstone.hallym.xx.flowtrip.service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -11,17 +14,21 @@ import capstone.hallym.xx.flowtrip.entity.Place;
 import capstone.hallym.xx.flowtrip.entity.Theme;
 import capstone.hallym.xx.flowtrip.repository.PlaceRepository;
 import capstone.hallym.xx.flowtrip.repository.ThemeRepository;
+import capstone.hallym.xx.flowtrip.repository.TravelCourseItemRepository;
 
 @Service
 public class RecommendationCandidateService {
 
     private final ThemeRepository themeRepository;
     private final PlaceRepository placeRepository;
+    private final TravelCourseItemRepository travelCourseItemRepository;
 
     public RecommendationCandidateService(ThemeRepository themeRepository,
-                                          PlaceRepository placeRepository) {
+                                          PlaceRepository placeRepository,
+                                          TravelCourseItemRepository travelCourseItemRepository) {
         this.themeRepository = themeRepository;
         this.placeRepository = placeRepository;
+        this.travelCourseItemRepository = travelCourseItemRepository;
     }
 
     public RecommendationCandidatesDto findCandidates(TravelRequestDto dto) {
@@ -40,7 +47,7 @@ public class RecommendationCandidateService {
         return themes.stream()
                 .filter(theme -> calculateThemeScore(theme, dto) > 0)
                 .sorted(Comparator.comparingInt((Theme theme) -> calculateThemeScore(theme, dto)).reversed())
-                .limit(5)
+                .limit(8)
                 .toList();
     }
 
@@ -53,11 +60,18 @@ public class RecommendationCandidateService {
             places = placeRepository.findByThemeIn(matchedThemes);
         }
 
-        return places.stream()
-                .filter(place -> calculatePlaceScore(place, dto) > 0)
-                .sorted(Comparator.comparingInt((Place place) -> calculatePlaceScore(place, dto)).reversed())
-                .limit(10)
+        List<PlaceCandidate> rankedCandidates = places.stream()
+                .map(place -> new PlaceCandidate(
+                        place,
+                        calculatePlaceScore(place, dto),
+                        countSavedPlace(place)
+                ))
+                .filter(candidate -> candidate.getBaseScore() > 0)
+                .sorted(Comparator.comparingInt(PlaceCandidate::getBaseScore).reversed())
+                .limit(45)
                 .toList();
+
+        return selectDiversePlaces(rankedCandidates, 14);
     }
 
     private int calculateThemeScore(Theme theme, TravelRequestDto dto) {
@@ -105,7 +119,172 @@ public class RecommendationCandidateService {
             score += 5;
         }
 
+        score += calculateSpecialRequestScore(place, dto);
+
         return score;
+    }
+
+    private List<Place> selectDiversePlaces(List<PlaceCandidate> candidates, int limit) {
+        List<Place> selectedPlaces = new ArrayList<>();
+        List<PlaceCandidate> remaining = new ArrayList<>(candidates);
+        Map<String, Integer> regionCounts = new HashMap<>();
+        Map<String, Integer> themeCounts = new HashMap<>();
+        Map<String, Integer> categoryCounts = new HashMap<>();
+
+        while (!remaining.isEmpty() && selectedPlaces.size() < limit) {
+            PlaceCandidate best = null;
+            int bestScore = Integer.MIN_VALUE;
+
+            for (PlaceCandidate candidate : remaining) {
+                int adjustedScore = calculateDiversityAdjustedScore(
+                        candidate,
+                        regionCounts,
+                        themeCounts,
+                        categoryCounts,
+                        selectedPlaces.size()
+                );
+
+                if (adjustedScore > bestScore) {
+                    best = candidate;
+                    bestScore = adjustedScore;
+                }
+            }
+
+            if (best == null) {
+                break;
+            }
+
+            Place place = best.getPlace();
+            selectedPlaces.add(place);
+            increaseCount(regionCounts, getRegionKey(place));
+            increaseCount(themeCounts, getThemeKey(place));
+            increaseCount(categoryCounts, getCategoryKey(place));
+            remaining.remove(best);
+        }
+
+        return selectedPlaces;
+    }
+
+    private int calculateDiversityAdjustedScore(PlaceCandidate candidate,
+                                                Map<String, Integer> regionCounts,
+                                                Map<String, Integer> themeCounts,
+                                                Map<String, Integer> categoryCounts,
+                                                int selectedCount) {
+        Place place = candidate.getPlace();
+        int score = candidate.getBaseScore();
+
+        score -= getCount(regionCounts, getRegionKey(place)) * 14;
+        score -= getCount(themeCounts, getThemeKey(place)) * 18;
+        score -= getCount(categoryCounts, getCategoryKey(place)) * 10;
+
+        long savedCount = candidate.getSavedCount();
+
+        if (savedCount >= 8) {
+            score -= 12;
+        } else if (savedCount >= 4) {
+            score -= 7;
+        } else if (savedCount == 0 && selectedCount >= 3) {
+            score += 8;
+        }
+
+        if (place.getPopularityScore() != null) {
+            score += Math.min(place.getPopularityScore(), 20) / 4;
+        }
+
+        return score;
+    }
+
+    private int calculateSpecialRequestScore(Place place, TravelRequestDto dto) {
+        if (dto == null
+                || dto.getSpecialRequest() == null
+                || dto.getSpecialRequest().isBlank()
+                || place == null) {
+            return 0;
+        }
+
+        String searchText = normalizeSearchText(
+                nullSafe(place.getPlaceName())
+                        + " "
+                        + nullSafe(place.getPlaceCategory())
+                        + " "
+                        + nullSafe(place.getDescription())
+                        + " "
+                        + nullSafe(place.getMood())
+                        + " "
+                        + nullSafe(place.getSourceNote())
+        );
+        String[] tokens = dto.getSpecialRequest()
+                .replaceAll("[^가-힣a-zA-Z0-9\\s]", " ")
+                .split("\\s+");
+        int score = 0;
+
+        for (String token : tokens) {
+            String normalizedToken = normalizeSearchText(token);
+
+            if (normalizedToken.length() < 2) {
+                continue;
+            }
+
+            if (searchText.contains(normalizedToken)) {
+                score += 8;
+            }
+        }
+
+        return Math.min(score, 24);
+    }
+
+    private long countSavedPlace(Place place) {
+        if (place == null || place.getPlaceName() == null || place.getPlaceName().isBlank()) {
+            return 0;
+        }
+
+        long count = travelCourseItemRepository.countByPlaceName(place.getPlaceName());
+
+        if (count == 0) {
+            count = travelCourseItemRepository.countByPlaceNameContaining(place.getPlaceName());
+        }
+
+        return count;
+    }
+
+    private void increaseCount(Map<String, Integer> counts, String key) {
+        if (key == null || key.isBlank()) {
+            return;
+        }
+
+        counts.put(key, getCount(counts, key) + 1);
+    }
+
+    private int getCount(Map<String, Integer> counts, String key) {
+        if (key == null || key.isBlank()) {
+            return 0;
+        }
+
+        return counts.getOrDefault(key, 0);
+    }
+
+    private String getRegionKey(Place place) {
+        if (place == null || place.getRegion() == null) {
+            return "";
+        }
+
+        return nullSafe(place.getRegion().getRegionName());
+    }
+
+    private String getThemeKey(Place place) {
+        if (place == null || place.getTheme() == null) {
+            return "";
+        }
+
+        return String.valueOf(place.getTheme().getThemeId());
+    }
+
+    private String getCategoryKey(Place place) {
+        if (place == null) {
+            return "";
+        }
+
+        return normalizeSearchText(place.getPlaceCategory());
     }
 
     private boolean contains(String dbValue, String userValue) {
@@ -221,9 +400,13 @@ public class RecommendationCandidateService {
         }
 
         for (Place place : places) {
+            long savedCount = countSavedPlace(place);
             sb.append("- placeId: ").append(place.getPlaceId()).append("\n");
             sb.append("  score: ").append(calculatePlaceScore(place, dto)).append("\n");
+            sb.append("  savedCount: ").append(savedCount).append("\n");
+            sb.append("  diversityHint: ").append(savedCount == 0 ? "덜 노출된 후보" : "사용자 저장 이력 있음").append("\n");
             sb.append("  placeName: ").append(nullSafe(place.getPlaceName())).append("\n");
+            sb.append("  region: ").append(place.getRegion() == null ? "" : nullSafe(place.getRegion().getRegionName())).append("\n");
             sb.append("  category: ").append(nullSafe(place.getPlaceCategory())).append("\n");
             sb.append("  description: ").append(nullSafe(place.getDescription())).append("\n");
             sb.append("  suitableFor: ").append(nullSafe(place.getSuitableFor())).append("\n");
@@ -242,5 +425,39 @@ public class RecommendationCandidateService {
 
     private String nullSafe(String value) {
         return value == null ? "" : value;
+    }
+
+    private String normalizeSearchText(String text) {
+        if (text == null) {
+            return "";
+        }
+
+        return text.replaceAll("\\s+", "")
+                .toLowerCase();
+    }
+
+    private static class PlaceCandidate {
+
+        private final Place place;
+        private final int baseScore;
+        private final long savedCount;
+
+        PlaceCandidate(Place place, int baseScore, long savedCount) {
+            this.place = place;
+            this.baseScore = baseScore;
+            this.savedCount = savedCount;
+        }
+
+        Place getPlace() {
+            return place;
+        }
+
+        int getBaseScore() {
+            return baseScore;
+        }
+
+        long getSavedCount() {
+            return savedCount;
+        }
     }
 }

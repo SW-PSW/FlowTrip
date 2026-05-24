@@ -456,6 +456,23 @@
             border-radius: 20px;
             background: rgba(246, 198, 91, 0.1);
             border: 1px solid rgba(246, 198, 91, 0.22);
+            max-height: calc(100vh - 340px);
+            overflow-y: auto;
+            padding-right: 18px;
+        }
+
+        .custom-results::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-results::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.09);
+            border-radius: 999px;
+        }
+
+        .custom-results::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.38);
+            border-radius: 999px;
         }
 
         .custom-results-header {
@@ -655,6 +672,11 @@
             border-radius: 18px;
             background: rgba(255, 255, 255, 0.06);
             border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .custom-results .review-box {
+            max-height: 360px;
+            overflow-y: auto;
         }
 
         .review-title {

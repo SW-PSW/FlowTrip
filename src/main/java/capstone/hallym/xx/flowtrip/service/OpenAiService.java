@@ -113,6 +113,8 @@ public class OpenAiService {
         sb.append("- [후보 장소]가 \"없음\"이면 recommendedPlaceName과 recommendedPlaceId는 빈 문자열로 작성하세요.\n");
         sb.append("- alternativePlaceName은 가능하면 후보 장소 안에서 고르세요.\n");
         sb.append("- 특이사항을 반드시 반영하세요.\n");
+        sb.append("- 점수가 비슷하면 savedCount가 낮거나 diversityHint가 '덜 노출된 후보'인 장소도 적극 검토하세요.\n");
+        sb.append("- 같은 지역/같은 카테고리의 흔한 장소만 반복하지 말고, 사용자 조건에 맞는 숨은 후보를 우선 고려하세요.\n");
         sb.append("- 검색 키워드는 네이버 로컬 검색에 바로 넣을 수 있는 짧은 한국어 문장으로 작성하세요.\n");
         sb.append("- restaurantKeywords, cafeKeywords, hotelKeywords, attractionKeywords는 각각 3개 이상 작성하세요.\n");
         sb.append("- travelRoute는 3개 이상 5개 이하의 짧은 코스 단계로 작성하세요.\n");
